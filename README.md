@@ -1,2 +1,2 @@
 # ProjectGilbert
-Research coding project for Bernard Mans, Macquarie University, 2015
+Coding project for Bernard Mans, Macquarie University, 2015
