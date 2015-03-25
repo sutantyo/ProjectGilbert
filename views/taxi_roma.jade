@@ -5,5 +5,97 @@ block content
 		h2 Roma taxi
 			small &nbsp animation of crawdad data
 
-	.row#taxi-animation(style='text-align: center, background: none')
+	.row#taxi-anim(style='text-align: center, background: none')
 
+
+		script.
+			var h = 600;
+			var w = 800;	
+			var padding = 10;
+
+			var startTime = new Date(2000,1,1,0,0,0,0);
+			var endTime = new Date(2000,1,1,0,0,10,0);
+	
+			// scaling from coordinates to pixels
+			var xScale = d3.scale.linear().domain([41.65,42.24]).range([padding, w-padding]);
+			var yScale = d3.scale.linear().domain([12.04,12.86]).range([h-padding,padding]);
+
+			var taxis = new Array();
+
+			// Create the taxis, give them names, but don't draw them yet
+			d3.json('/taxi_roma/all', function(error,data){
+				if(error) 
+					console.error('error retrieving JSON data' + error);
+				data.forEach(function(d){
+					console.log(d.id);
+					taxis.push({d.id: {'x':0,'y':0}});
+				});
+			});
+			svg = d3.select('#taxi-anim').append('svg').attr({
+						'height': h,
+						'width' : w,
+						'id'		: 'taxi-anim-window'
+			});		
+			console.log(taxis);
+			svg.selectAll('circle')
+					.data(taxis)
+					.enter()
+					.append('circle')
+					.attr({
+							cx: function(d) { return xScale(d.x) },
+							cy: function(d) { return yScale(d.y) },
+							r: 3,
+							'fill': function(d){
+									console.log('assigning color');
+									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')';
+							},
+							'class': function(d,i){
+									return 'circle-'+ i;
+							},
+							'opacity': 0
+						});
+
+
+
+			/*
+			for (var counter = 0; counter < 10; counter++)
+			{
+				d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
+																					 		 startTime.toTimeString().substr(3,2) + 'm' +
+																					 		 startTime.toTimeString().substr(6,2) + 's&end=' +
+																					 		 endTime.toTimeString().substr(0,2) + 'h' + 
+																					 		 endTime.toTimeString().substr(3,2) + 'm' + 
+																					 		 endTime.toTimeString().substr(6,2) + 's', 
+					function(error,data){
+						if(error) 
+							console.error('error retrieving JSON data' + error);
+						
+						var ds = data;
+					}); //end query
+
+					//increment time to get next dataset
+					startTime.setSeconds(startTime.getSeconds()+10);
+					endTime.setSeconds(endTime.getSeconds()+10);
+			}
+			*/
+
+
+
+			/*	
+			function updatePoints(ds){
+
+				var dots = svg.selectAll('circle')
+											.data(ds)
+											.enter()
+											.append('circle')
+											.attr({
+												cx: function(d) { return xScale(d.x) },
+												cy: function(d) { return yScale(d.y) },
+												r: 3,
+												'fill': function(d){
+														return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')';
+												}
+											});
+			}
+			*/	
+					
