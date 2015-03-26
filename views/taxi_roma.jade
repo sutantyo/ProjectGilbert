@@ -13,89 +13,115 @@ block content
 			var w = 800;	
 			var padding = 10;
 
+			var max_latitude = 42.24;
+			var min_latitude = 41.65;
+			var max_longitude = 12.86;
+			var min_longitude = 12.04;
+
 			var startTime = new Date(2000,1,1,0,0,0,0);
-			var endTime = new Date(2000,1,1,0,0,10,0);
+			var endTime = new Date(2000,1,1,0,0,15,0);
 	
 			// scaling from coordinates to pixels
-			var xScale = d3.scale.linear().domain([41.65,42.24]).range([padding, w-padding]);
-			var yScale = d3.scale.linear().domain([12.04,12.86]).range([h-padding,padding]);
+			var xScale = d3.scale.linear().domain([min_latitude,max_latitude]).range([padding, w-padding]);
+			var yScale = d3.scale.linear().domain([min_longitude,max_longitude]).range([h-padding,padding]);
 
 			var taxis = new Array();
+			var lookup = {};
 
-			// Create the taxis, give them names, but don't draw them yet
-			d3.json('/taxi_roma/all', function(error,data){
-				if(error) 
-					console.error('error retrieving JSON data' + error);
-				data.forEach(function(d){
-					console.log(d.id);
-					taxis.push({d.id: {'x':0,'y':0}});
-				});
-			});
+			var frameLimit = 6000;
+			var frame = 1;
+			var framePause = 10;
+
 			svg = d3.select('#taxi-anim').append('svg').attr({
 						'height': h,
 						'width' : w,
 						'id'		: 'taxi-anim-window'
 			});		
-			console.log(taxis);
-			svg.selectAll('circle')
-					.data(taxis)
-					.enter()
-					.append('circle')
-					.attr({
-							cx: function(d) { return xScale(d.x) },
-							cy: function(d) { return yScale(d.y) },
-							r: 3,
-							'fill': function(d){
-									console.log('assigning color');
-									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')';
-							},
-							'class': function(d,i){
-									return 'circle-'+ i;
-							},
-							'opacity': 0
-						});
 
+			var map = new google.maps.Map(d3.select('#taxi-anim').node(), {
+				zoom: 11,
+				center: new google.maps.LatLng(min_latitude+(max_latitude-min_latitude)/2,
+																			min_longitude+(max_longitude-min_longitude)/2),
+				mapTypeId: google.maps.MapTypeId.TERRAIN
+			});
 
+			// Create the taxis, give them names, but don't draw them yet
+			d3.json('/taxi_roma/all', function(error,data){
+				if(error) 
+					console.error('error retrieving JSON data' + error);
+				var overlay = new google.maps.OverlayView();
 
-			/*
-			for (var counter = 0; counter < 10; counter++)
-			{
-				d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
-																					 		 startTime.toTimeString().substr(3,2) + 'm' +
-																					 		 startTime.toTimeString().substr(6,2) + 's&end=' +
-																					 		 endTime.toTimeString().substr(0,2) + 'h' + 
-																					 		 endTime.toTimeString().substr(3,2) + 'm' + 
-																					 		 endTime.toTimeString().substr(6,2) + 's', 
-					function(error,data){
-						if(error) 
-							console.error('error retrieving JSON data' + error);
-						
-						var ds = data;
-					}); //end query
+				data.forEach(function(d){
+					taxis.push({id :d.id, x:0, y:0});
+				});
+				for (var i = 0, len = taxis.length; i < len; i++){
+					lookup[taxis[i].id]=taxis[i];
+				}
+				svg.selectAll('circle')
+						.data(taxis)
+						.enter()
+						.append('circle')
+						.attr({
+								cx: function(d) { return xScale(d.x) },
+								cy: function(d) { return yScale(d.y) },
+								r: 3,
+								'fill': function(d){
+										return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')';
+								},
+								'class': function(d,i){
+										return 'taxi-'+ d.id;
+								},
+								'opacity': 0
+							});
+				updatePoints();	
+			});
 
-					//increment time to get next dataset
-					startTime.setSeconds(startTime.getSeconds()+10);
-					endTime.setSeconds(endTime.getSeconds()+10);
+			function updatePoints()
+			{	
+				console.log(frame);
+				if (frame++ > frameLimit){
+					return;
+				}
+				else
+				{
+					d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
+																								 startTime.toTimeString().substr(3,2) + 'm' +
+																								 startTime.toTimeString().substr(6,2) + 's&end=' +
+																								 endTime.toTimeString().substr(0,2) + 'h' + 
+																								 endTime.toTimeString().substr(3,2) + 'm' + 
+																								 endTime.toTimeString().substr(6,2) + 's', 
+						function(error,data){
+							if(error) 
+								console.error('error retrieving JSON data' + error);
+							
+							data.forEach(function(d){
+								lookup[d.id].x = d.x;
+								lookup[d.id].y = d.y;
+								//console.log('Data for ' + d.id + '. Updated ' + lookup[d.id] + ' from ' + lookup[d.id].x + ' to ' + d.x);
+							});
+						//increment time for next dataset
+							startTime.setSeconds(startTime.getSeconds()+15);
+							endTime.setSeconds(endTime.getSeconds()+15);
+							drawPoints()
+							//updatePoints();
+						}); //end query
+
+				}
 			}
-			*/
 
-
-
-			/*	
-			function updatePoints(ds){
+			function drawPoints(){
 
 				var dots = svg.selectAll('circle')
-											.data(ds)
-											.enter()
-											.append('circle')
+											.data(taxis)
+											.transition()
 											.attr({
 												cx: function(d) { return xScale(d.x) },
 												cy: function(d) { return yScale(d.y) },
 												r: 3,
+												'opacity': 100,
 												'fill': function(d){
 														return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')';
 												}
 											});
 			}
-			*/	
 					

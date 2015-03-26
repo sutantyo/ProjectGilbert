@@ -34,6 +34,7 @@ app.listen(app.get('port'), function() {
 });
 
 app.get('/taxi_roma/all', function(req,res){
+	console.log('calling to get all taxi id');
 	pg.connect(connectionString, function(err,client,done){
 		if(err)
 			return console.error('error fetching client from pool',err);
@@ -45,8 +46,13 @@ app.get('/taxi_roma/all', function(req,res){
 			var json_response = JSON.stringify(result.rows);
 			res.writeHead(200,{'content-type':'application/json','content-length':Buffer.byteLength(json_response)});
 			res.end(json_response);
+			client.end();
 		});
 	});
+});
+
+app.get('/maptest', function(req,res){
+	res.render('maptest');
 });
 
 // GET data according to time
@@ -70,6 +76,7 @@ app.get('/taxi_roma/time', function(req,res){
 	else
 		res.status(400).send("Incorrect GET parameters");
 
+	console.log('calling to get coordinates');
 	pg.connect(connectionString, function(err,client,done){
 		if(err)
 			return console.error('error fetching client from pool', err);
