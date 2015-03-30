@@ -21,8 +21,8 @@ app.set('view engine', 'jade');
 // Database matters:
 
 // Local database
-var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
-//var connectionString = process.env.DATABASE_URL;
+//var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
+var connectionString = process.env.DATABASE_URL;
 
 app.get(['/','/home'], function(req,res){
 	res.render('taxi_roma',
