@@ -4,7 +4,6 @@ var url = require('url');
 var bodyParser = require('body-parser');
 var pg = require('pg');
 
-var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
 var app = express();
 
 app.use(bodyParser.json());
@@ -18,6 +17,12 @@ app.use(express.static(__dirname + '/public'));
 app.use(morgan('dev'));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
+
+// Database matters:
+
+// Local database
+var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
+//var connectionString = process.env.DATABASE_URL;
 
 app.get(['/','/home'], function(req,res){
 	res.render('taxi_roma',
