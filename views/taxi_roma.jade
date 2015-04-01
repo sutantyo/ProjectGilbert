@@ -24,7 +24,7 @@ block content
 		var frameLimit = 1000;
 		var frame = 1;
 		var framePause = 10;
-		var startTime = new Date(2000,1,1,0,0,0,0);
+		var startTime = new Date(2000,1,1,0,0,00,0);
 		var endTime = new Date(2000,1,1,0,0,15,0);
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
@@ -41,35 +41,13 @@ block content
 
 
 
-		// initial call, get the list of taxis and prepare the array
 
-		d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
-																								 startTime.toTimeString().substr(3,2) + 'm' +
-																								 startTime.toTimeString().substr(6,2) + 's&end=' +
-																								 endTime.toTimeString().substr(0,2) + 'h' + 
-																								 endTime.toTimeString().substr(3,2) + 'm' + 
-																								 endTime.toTimeString().substr(6,2) + 's', 
-			function(error,data)
-			{
-				if (error)
-					console.error("error obtaining JSON data: " + error);
-
-				taxis.length = 0;
-				data.forEach(function(datum){
-					taxis.push({id: datum.id, x: datum.x, y: datum.y});
-				});
-				console.log(taxis);
-
-				startTime.setSeconds(startTime.getSeconds()+15);
-				endTime.setSeconds(endTime.getSeconds()+15);
-				
-				taxiGPS.prototype = new google.maps.OverlayView();
-				var taxiLayer = new taxiGPS();
-				// bind the overlay to the map (thus calling overlay.onAdd)
-				taxiLayer.setMap(map);
-				// start the chain
-				_updatePoints(taxiLayer);
-		});
+		taxiGPS.prototype = new google.maps.OverlayView();
+		var taxiLayer = new taxiGPS();
+		// bind the overlay to the map (thus calling overlay.onAdd)
+		taxiLayer.setMap(map);
+		// start the chain
+		_updatePoints(taxiLayer);
 
 		function _updatePoints(taxiLayer){
 			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
@@ -80,9 +58,13 @@ block content
 																									 endTime.toTimeString().substr(6,2) + 's', 
 				function(error,data)
 				{
+					console.log('Frame: ' + frame + ' start time: ' + startTime);
 					taxis.length = 0;
 					data.forEach(function(datum){
-						taxis.push({id: datum.id, x: datum.x, y: datum.y});
+						{
+							console.log ('pushed taxi ' + datum.id + ' at ' + '(' + datum.x + ',' + datum.y + ')' );
+							taxis.push({id: datum.id, x: datum.x, y: datum.y});
+						}
 					});
 
 					taxiLayer.update();
@@ -90,7 +72,9 @@ block content
 					startTime.setSeconds(startTime.getSeconds()+15);
 					endTime.setSeconds(endTime.getSeconds()+15);
 					if (frame++ < frameLimit)
-						_updatePoints(taxiLayer);
+					{
+						setTimeout(function(){_updatePoints(taxiLayer);},100);
+					}
 			}); // end d3.json
 
 
@@ -124,7 +108,6 @@ block content
 			this.update = function(){
 
 				var markers = _div.selectAll('svg').data(taxis, function(d) {return d.id}).each(transform)
-
 				var activeTaxis = markers.enter().append('svg')
 					.attr('class','marker')
 					.attr('id', function(d){ return 'taxi-animation-'+d.id});
@@ -135,6 +118,8 @@ block content
 							width: 24,
 							height: 12,
 							'fill': function(d){
+									if (d.id == 37) 
+										console.log ("Coord of taxi " + d.id + " is (" + d.x + ',' + d.y + ')');
 									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')'
 							}
 					});
@@ -152,6 +137,7 @@ block content
 						}
 					})
 					.text(function(d){ return d.id })
+				/*
 				activeTaxis.append('text')
 					.attr({
 						'x':25,
@@ -161,11 +147,9 @@ block content
 						'class':'coord'
 					})
 					.text(function(d){ return '(' + (d.x).substr(0,12) +','+(d.y).substr(0,12)+')' })
+				*/
 
 
-
-			
-				// ENTER: create elements as needed
 				markers.exit()
 					.remove(function(d){console.log('Removed ' + d.id)});
 
