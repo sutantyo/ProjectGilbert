@@ -12,21 +12,19 @@ block content
 		.marker, .coverage{
 			position: absolute
 		}
+		.ligne{
+			position: absolute
+		}
 
 	.page-header
 		h2 Roma taxi
 			small &nbsp animation of crawdad data
 
-	#info-panel
-		.div
-			h3 Time
-				span#info-time.large
-
 	#taxi-anim
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 100;
+		var frameLimit = 2000;
 		var frame = 1;
 		var framePause = 10;
 		var startTime = new Date(2000,1,1,12,0,0,0);
@@ -34,7 +32,7 @@ block content
 
 
 		// parameters for the graph
-		var coverageRadius = 500;
+		var coverageRadius = 1000;
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
 		var taxis = [];
@@ -57,21 +55,9 @@ block content
 		var taxiLayer = new taxiGPS();
 		// bind the overlay to the map (thus calling overlay.onAdd)
 		taxiLayer.setMap(map);
-
-
-		// initialise the info-panel
-		d3.select('#info-time').append('text').text('  ' + startTime.toTimeString().substr(0,8));
-
-
 		// start the chain
-		setTimeout(function(){_updatePoints(taxiLayer);},50);
-		setInterval(function() {
-			if (frame++ < frameLimit)
-				_updatePoints(taxiLayer);
-			//setTimeout(function(){_updatePoints(taxiLayer);},50);
-		}, 160);	
 
-
+		setTimeout(function(){_updatePoints(taxiLayer);},500);
 
 		function _updatePoints(taxiLayer){
 			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
@@ -137,8 +123,11 @@ block content
 
 					startTime.setSeconds(startTime.getSeconds()+15);
 					endTime.setSeconds(endTime.getSeconds()+15);
-
-					d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
+					if (frame++ < frameLimit)
+					{
+						setTimeout(function(){_updatePoints(taxiLayer);},100);
+					}
+			
 			}); // end d3.json
 		};
 

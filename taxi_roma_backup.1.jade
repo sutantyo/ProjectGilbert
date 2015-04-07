@@ -12,21 +12,19 @@ block content
 		.marker, .coverage{
 			position: absolute
 		}
+		.ligne{
+			position: absolute
+		}
 
 	.page-header
 		h2 Roma taxi
 			small &nbsp animation of crawdad data
 
-	#info-panel
-		.div
-			h3 Time
-				span#info-time.large
-
 	#taxi-anim
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 100;
+		var frameLimit = 50;
 		var frame = 1;
 		var framePause = 10;
 		var startTime = new Date(2000,1,1,12,0,0,0);
@@ -45,9 +43,8 @@ block content
 
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
 
-			zoom: 15,
+			zoom: 16,
 			center: new google.maps.LatLng(41.8975,12.4694),
-			//center: new google.maps.LatLng(41.8835,12.4974),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		});
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
@@ -57,21 +54,9 @@ block content
 		var taxiLayer = new taxiGPS();
 		// bind the overlay to the map (thus calling overlay.onAdd)
 		taxiLayer.setMap(map);
-
-
-		// initialise the info-panel
-		d3.select('#info-time').append('text').text('  ' + startTime.toTimeString().substr(0,8));
-
-
 		// start the chain
-		setTimeout(function(){_updatePoints(taxiLayer);},50);
-		setInterval(function() {
-			if (frame++ < frameLimit)
-				_updatePoints(taxiLayer);
-			//setTimeout(function(){_updatePoints(taxiLayer);},50);
-		}, 160);	
 
-
+		setTimeout(function(){_updatePoints(taxiLayer);},500);
 
 		function _updatePoints(taxiLayer){
 			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
@@ -89,7 +74,7 @@ block content
 					data.forEach(function(datum){
 						if (_duplicate_check.indexOf(datum.id) == -1)	
 						{
-							//if (datum.id == 352 || datum.id == 234 || datum.id == 37 || datum.id == 310 || datum.id == 322)
+							//if (datum.id == 352 || datum.id == 234 || datum.id == 37)
 							{
 							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
 								taxis.push({id: Number(datum.id), x: Number(datum.x), y: Number(datum.y), neighbours: []});
@@ -137,8 +122,11 @@ block content
 
 					startTime.setSeconds(startTime.getSeconds()+15);
 					endTime.setSeconds(endTime.getSeconds()+15);
-
-					d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
+					if (frame++ < frameLimit)
+					{
+						setTimeout(function(){_updatePoints(taxiLayer);},50);
+					}
+			
 			}); // end d3.json
 		};
 
@@ -162,7 +150,7 @@ block content
 				var position = transformCoord(d);
 				return d3.select(this)
 				.style("left", position.x-x_padding + "px")
-				.style("top", position.y+y_padding + "px")
+				.style("top", position.y+y_padding + "px");
 			}
 
 			function drawCoverages(d){
@@ -223,22 +211,14 @@ block content
 				var enteringCoverages = coverages.enter().append('svg').each(drawCoverages).attr('class','coverage');
 				coverages.exit().remove();
 
-
-				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id} ).each(transform)
-
+				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id}).each(transform);
 				//coverages.append('g').each(drawEdges);
 
 				// update entering items
 				var enteringTaxis = markers.enter().append('svg').each(transform)
 					.attr({ 'height' : 100, 'width' : 100, 'class' : 'marker', 'id' : function(d){return 'taxi-animation-'+d.id} })
 
-				enteringTaxis.append('circle')
-					.attr({
-						'cx' : 62, 'cy' : 56, 'r' : 20,
-						'fill' : function(d){return d.color},
-						})
-				
-				markers.select('circle')
+				markers.append('circle')
 					.attr({
 						'cx' : 62, 'cy' : 56, 'r' : 5,
 						'fill' : function(d){return d.color}
@@ -259,7 +239,7 @@ block content
 								//return getContrast50(d.id)}
 					})
 					.text(function(d){ return d.id })
-					*/
+				*/
 
 			}; // end this.update
 
