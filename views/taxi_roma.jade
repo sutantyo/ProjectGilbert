@@ -9,7 +9,10 @@ block content
 			margin: 0;
 			padding: 0 20px 0 30px;
 		}
-		.marker, lines{
+		.marker, .coverage{
+			position: absolute
+		}
+		.ligne{
 			position: absolute
 		}
 
@@ -21,37 +24,39 @@ block content
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 5;
+		var frameLimit = 1000;
 		var frame = 1;
 		var framePause = 10;
-		var startTime = new Date(2000,1,1,0,0,0,0);
-		var endTime = new Date(2000,1,1,0,0,15,0);
+		var startTime = new Date(2000,1,1,12,0,0,0);
+		var endTime = new Date(2000,1,1,12,0,15,0);
 
 
 		// parameters for the graph
 		var coverageRadius = 500;
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
-		var taxis = []
+		var taxis = [];
+		var edges = [];
 
 		// create a map 
+		
+
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
+
 			zoom: 16,
 			center: new google.maps.LatLng(41.8975,12.4694),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		});
-
-		var padding = 0;
-
-
-
+		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 20}] }];
+		map.setOptions({styles: styles});
 
 		taxiGPS.prototype = new google.maps.OverlayView();
 		var taxiLayer = new taxiGPS();
 		// bind the overlay to the map (thus calling overlay.onAdd)
 		taxiLayer.setMap(map);
 		// start the chain
-		_updatePoints(taxiLayer);
+
+		setTimeout(function(){_updatePoints(taxiLayer);},500);
 
 		function _updatePoints(taxiLayer){
 			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
@@ -69,9 +74,12 @@ block content
 					data.forEach(function(datum){
 						if (_duplicate_check.indexOf(datum.id) == -1)	
 						{
+							//if (datum.id == 352 || datum.id == 234 || datum.id == 37)
+							{
 							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
-							taxis.push({id: datum.id, x: datum.x, y: datum.y, neighbours: []});
-							_duplicate_check.push(datum.id);
+								taxis.push({id: Number(datum.id), x: Number(datum.x), y: Number(datum.y), neighbours: []});
+								_duplicate_check.push(datum.id);
+							}
 						}
 					});
 					_graph_findNeighbours();
@@ -87,18 +95,17 @@ block content
 						//console.log('Graph ' + i + ':' + list_of_node);
 					});
 					
-
+					
 					taxiLayer.update();
 
 					startTime.setSeconds(startTime.getSeconds()+15);
 					endTime.setSeconds(endTime.getSeconds()+15);
 					if (frame++ < frameLimit)
 					{
-						setTimeout(function(){_updatePoints(taxiLayer);},0);
+						setTimeout(function(){_updatePoints(taxiLayer);},50);
 					}
+			
 			}); // end d3.json
-
-
 		};
 
 
@@ -106,54 +113,89 @@ block content
 
 			var _projection;
 			var _div;
-			var _line_layer;
+			var _div2;
+
 			var x_padding = 62;
 			var y_padding = -56;
 
-			function transform(d) {
-						var LatLng = new google.maps.LatLng(d.x, d.y);
-						var position = _projection.fromLatLngToDivPixel(LatLng);
-						return d3.select(this)
-						.transition()
-						.style("left", position.x-x_padding + "px")
-						.style("top", position.y+y_padding + "px");
-			}
 			function transformCoord(d){
 				var LatLng = new google.maps.LatLng(d.x, d.y);
 				var position = _projection.fromLatLngToDivPixel(LatLng);
 				return position;
 			}
-			function drawEdges(d){
-				console.log("New line!");
-				var orig_d = d;
-				var LatLng = new google.maps.LatLng(d.x,d.y);
-				var origin = _projection.fromLatLngToDivPixel(LatLng);
-				var x1 = origin.x;
-				var y1 = origin.y;
 
-				//.data(function(d){console.log(d.neighbours);return d.neighbours}).enter().append('line').each(drawLine);
-				d3.select(this).selectAll('line').data(d.neighbours).enter().append('line')
+			function transform(d) {
+				var position = transformCoord(d);
+				return d3.select(this)
+				.style("left", position.x-x_padding + "px")
+				.style("top", position.y+y_padding + "px");
+			}
+
+			function drawCoverages(d){
+				var dy = convertMtoLL(coverageRadius*2);
+				var LatLng1 = new google.maps.LatLng(d.x, d.y);
+				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
+
+				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
+				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
+
+				var radius = position2.x - position1.x;
+
+				d3.select(this)
+					.style("left", position1.x - radius/2 + "px")
+					.style("top", position1.y - radius/2 + "px")
 					.attr({
-						'class' : 'lines',
-						'x1' : function(d){console.log(orig_d.id + ' at ' + x1); return x1},
-						'y1' : function(d){console.log(orig_d.id + ' at ' + y1); return y1},
-						'x2' : function(d){console.log(d.id + ' at ' + (x1*1.1)); return transformCoord(d).x;},
-						'y2' : function(d){console.log(d.id + ' at ' + (y1*1.1)); return transformCoord(d).y;},
-					  'style' : 'stroke:black; stroke-width:1'
+						height: radius,
+						width: radius,
+					});
+					
+				d3.select(this).selectAll('line').data(d.neighbours)
+					//.transition()
+					//.ease('expo')
+					.attr({
+						'x1' : function(d){
+											return radius/2;
+										},
+						'y1' : function(d){
+											return radius/2;
+										},
+						'x2' : function(d){
+											return transformCoord(d).x - position1.x + radius/2;
+											//return transformCoord(d).x;
+										},
+						'y2' : function(d){
+											return transformCoord(d).y - position1.y + radius/2;
+											//return transformCoord(d).y;
+										},
+					  'style' : 'stroke:gray; stroke-width:2'
 					});
 
-					
+				d3.select(this).selectAll('line').data(d.neighbours).enter().append('line')
+					.attr({
+						'x1' : function(d){
+											return radius/2;
+										},
+						'y1' : function(d){
+											return radius/2;
+										},
+						'x2' : function(d){
+											return transformCoord(d).x - position1.x + radius/2;
+											//return transformCoord(d).x;
+										},
+						'y2' : function(d){
+											return transformCoord(d).y - position1.y + radius/2;
+											//return transformCoord(d).y;
+										},
+					  'style' : 'stroke:gray; stroke-width:1'
+					});
+
+				d3.select(this).selectAll('line').data(d.neighbours).exit().remove();
+
 			}
 
 			this.onAdd = function() {
-				_div = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
-				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','line-layer');
-				_line_layer = _div2.append('svg')
-					.attr({	
-						'height': 2880,
-						'width': 1560,
-						'id' : 'line_layer'
-					});
+				_div  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
+				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','edge-layer');
 			};
 
 			this.onRemove = function() {
@@ -163,11 +205,11 @@ block content
 
 			this.update = function(){
 
-				//console.log(taxis);
-				var markers = _div.selectAll('svg').data(taxis, function(d) {return d.id}).each(transform)
-				//var line_layer = _div2.selectAll('svg').data(taxis).enter();
-
-				//console.log(markers.selectAll('text').selectAll('.coord'));
+				var coverages = _div2.selectAll('svg').data(taxis).each(drawCoverages);
+				var enteringCoverages = coverages.enter().append('svg').each(drawCoverages).attr('class','coverage');
+				coverages.exit().remove();
+				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id}).each(transform);
+				//coverages.append('g').each(drawEdges);
 
 				// update entering items
 				var enteringTaxis = markers.enter().append('svg').each(transform)
@@ -181,14 +223,7 @@ block content
 							y: 50,
 							width: 24,
 							height: 12,
-							'fill': function(d){				var line_layer = _div2.append('svg')
-					.attr({	
-						'height': 2880,
-						'width': 1560,
-						'id' : 'line_layer'
-					});
-									//if (d.id == 37) 
-									//	console.log ("Coord of taxi " + d.id + " is (" + d.x + ',' + d.y + ')');
+							'fill': function(d){	
 									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')'
 							}
 					});
@@ -209,74 +244,63 @@ block content
 
 				markers.exit().remove();
 
+
 				
-				var lines = _line_layer.selectAll('g').data(taxis, function(d) {return d.id}).each(drawEdges);
-				var enteringEdges = lines.enter().append('g').each(drawEdges);
-				lines.exit().remove();
 
+				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id}).each(transform);
+				//coverages.append('g').each(drawEdges);
 
-
-
-
-				//lines.each(drawLine);
-				/* Path drawing */
-				//var enteringPaths = markers.data(taxis, function(d) {return d.id}).selectAll('path').data(function(d){ console.log(d.neighbours); return d.neighbours })
-				//var enteringPaths = markers.selectAll('lines').data(taxis, function(d) {console.log(d.id); return d.id}).enter().each(drawLine);
-				
-				//.data(function(d){console.log(d.neighbours);return d.neighbours}).enter().append('line').each(drawLine);
-				
-				/*
-				graphs.forEach(function(graph){
-					if (graph.length > 1)
-						console.log("About to draw something for graph with " + graph[0].id);
-						graph.forEach(function(node){
-							node.neighbours.forEach(function(taxi){
-								console.log("...draw path from " + node.id + " to " +  taxi.id);
-								drawLine(
-							});
-									
-						});
-				});
-				*/
-
-				/* At this point all 'update' selection includes the enter selection as well */
-
-				/*
-				enteringTaxis.append('circle')
-					.attr({	
-						cx: 50 + 12,
-						cy: 50 + 6,
-						r : 30,
-						'fill' : 'red',
-						'opacity' : '0.3'
-
-						})
-				*/
-
-				/* GPS Coordinates */
-				/*
-				markers.selectAll('text.coord').data(taxis, function(d) { return d.id})
-					.text(function(d){ 
-						console.log(d.x);
-						return '(' + (d.x).substr(0,12) +','+(d.y).substr(0,12)+')' 
-					})
+				// update entering items
+				var enteringTaxis = markers.enter().append('svg').each(transform)
+					.attr('class','marker')
+					.attr('id', function(d){ return 'taxi-animation-'+d.id})
+					.attr('height',100)
+					.attr('width',100)
+				enteringTaxis.append('rect')
+					.attr({
+							x: 50,
+							y: 50,
+							width: 24,
+							height: 12,
+							'fill': function(d){	
+									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')'
+							}
+					});
 				enteringTaxis.append('text')
 					.attr({
-						'x':25,
-						'y':5,
+						'x': function(d){ 
+							if (d.id < 10) return 50 + 8;
+							else if (d.id < 100) return 50 + 6;
+							else return 50 + 3;
+						},
+						'y':50 + 5,
 						'dy':'.45em',
-						'fill':'black',
-						'class':'coord'
+						'fill':function(d){
+								return getContrast50(d.id)
+						}
 					})
-					.text(function(d){ return '(' + (d.x).substr(0,12) +','+(d.y).substr(0,12)+')' })
-				*/
-					
+					.text(function(d){ return d.id })
 
-				// ENTER: create elements as needed
+				markers.exit().remove();
 
-				
-				//_div.selectAll('.coord')
-				//	.data(taxis).each(transformCoord);
+
+				/*
+				_div2.selectAll('svg').data(taxis)
+					.attr('class','ligne')
+					.selectAll('g')
+					.data(function(d){console.log(d.id); return d.neighbours})
+					.each(drawEdges)
+
+				_div2.selectAll('svg').data(taxis)
+					.attr('class','ligne')
+					.selectAll('g')
+					.data(function(d){console.log(d.id); return d.neighbours})
+					.enter()
+					.append('g')
+					.each(drawEdges)
+					*/
+
+
 
 			}; // end this.update
 
@@ -284,23 +308,15 @@ block content
 			this.draw = function() {
 				_projection = this.getProjection();
 				this.update();
-
 					
 			};
 
 		}
 
-		function getContrast50(id){
-				var r = id*89%256;
-				var g = id*57%256;
-				var b = id*17%256; 
-				var yiq = ((r*299)+(g*587)+(b*114))/1000;
-				return (yiq >= 128) ? 'black' : 'white';
-		}	
 
-
-		function distance(lat1, lon1, lat2, lon2) {
-			var R = 6371;
+		// Find the distance (in metres) between two coordinates on the map
+		function convertLLtoM(lat1, lon1, lat2, lon2) {
+			var R = 6378.137
 			var a = 
 				 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 + 
 				 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
@@ -308,6 +324,19 @@ block content
 
 			return 1000 * R * 2 * Math.asin(Math.sqrt(a));
 		}
+
+		// Convert a distance in metres into change in longitudinal coordinate
+		// 
+		// We are doing something very lazy here: at the equator, 1 longitudinal degree
+		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
+		function convertMtoLL(m) {
+			return (m * 0.00000893831118);
+		}
+
+
+		// Graph-related codes
+
+		var graphs = [];
 
 		function _graph_findNeighbours()
 		{
@@ -317,17 +346,18 @@ block content
 				{
 					if (i != j)
 					{
-						if (distance(taxis[i].x,taxis[i].y,taxis[j].x,taxis[j].y) < coverageRadius)
+						if (convertLLtoM(taxis[i].x,taxis[i].y,taxis[j].x,taxis[j].y) < coverageRadius)
 						{
 							if (taxis[i].neighbours.indexOf(taxis[j]) == -1)
+							{
 								taxis[i].neighbours.push(taxis[j]);
+								edges.push({origin: taxis[i].id, dest: taxis[j].id});
+							}
 						}
 					}
 				}
 			}
 		}
-
-		var graphs = [];
 
 		function _graph_buildGraph()
 		{
@@ -362,6 +392,16 @@ block content
 					}
 				}
 			}
-
 		}
+
+		function getContrast50(id){
+				var r = id*89%256;
+				var g = id*57%256;
+				var b = id*17%256; 
+				var yiq = ((r*299)+(g*587)+(b*114))/1000;
+				return (yiq >= 128) ? 'black' : 'white';
+		}	
+
+
+
 
