@@ -47,7 +47,7 @@ block content
 			center: new google.maps.LatLng(41.8975,12.4694),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		});
-		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 20}] }];
+		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
 		taxiGPS.prototype = new google.maps.OverlayView();
@@ -87,6 +87,7 @@ block content
 					graphs.length = 0;
 					_graph_buildGraph();
 
+					/*
 					graphs.forEach(function(graph,i){
 						var list_of_node = '';
 						graph.forEach(function(node){
@@ -94,7 +95,28 @@ block content
 						});
 						//console.log('Graph ' + i + ':' + list_of_node);
 					});
+					*/
 					
+					graphs.forEach(function(graph,i){
+						var graph_size = graph.length;
+						var list_of_node = '';
+						graph.forEach(function(node){
+							list_of_node = list_of_node + ' ' + node.id;
+							if (graph_size > 15)
+								node.color = '#ff0000';
+							else if (graph_size > 13)
+								node.color = '#a81662';
+							else if (graph_size > 9)
+								node.color = '#c94b8c';
+							else if (graph_size > 5)
+								node.color = '#d870e6';
+							else if (graph_size > 1)
+								node.color = '#a370e6';
+							else
+								node.color = 'gray';
+						});
+						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
+					});
 					
 					taxiLayer.update();
 
@@ -149,10 +171,9 @@ block content
 						width: radius,
 					});
 					
-				d3.select(this).selectAll('line').data(d.neighbours)
-					//.transition()
-					//.ease('expo')
-					.attr({
+				var lines = d3.select(this).selectAll('line').data(d.neighbours);
+				lines.enter().append('line');
+				lines.attr({
 						'x1' : function(d){
 											return radius/2;
 										},
@@ -167,29 +188,10 @@ block content
 											return transformCoord(d).y - position1.y + radius/2;
 											//return transformCoord(d).y;
 										},
-					  'style' : 'stroke:gray; stroke-width:2'
+					  'style' : 'stroke-width:2',
+						'style' : function(d){return 'stroke:'+d.color} 
 					});
-
-				d3.select(this).selectAll('line').data(d.neighbours).enter().append('line')
-					.attr({
-						'x1' : function(d){
-											return radius/2;
-										},
-						'y1' : function(d){
-											return radius/2;
-										},
-						'x2' : function(d){
-											return transformCoord(d).x - position1.x + radius/2;
-											//return transformCoord(d).x;
-										},
-						'y2' : function(d){
-											return transformCoord(d).y - position1.y + radius/2;
-											//return transformCoord(d).y;
-										},
-					  'style' : 'stroke:gray; stroke-width:1'
-					});
-
-				d3.select(this).selectAll('line').data(d.neighbours).exit().remove();
+				lines.exit().remove();
 
 			}
 
@@ -213,10 +215,14 @@ block content
 
 				// update entering items
 				var enteringTaxis = markers.enter().append('svg').each(transform)
-					.attr('class','marker')
-					.attr('id', function(d){ return 'taxi-animation-'+d.id})
-					.attr('height',100)
-					.attr('width',100)
+					.attr({ 'height' : 100, 'width' : 100, 'class' : 'marker', 'id' : function(d){return 'taxi-animation-'+d.id} })
+				markers.append('circle')
+					.attr({
+						'cx' : 62, 'cy' : 56, 'r' : 5,
+						'fill' : function(d){return d.color}
+						})
+
+				/*
 				enteringTaxis.append('rect')
 					.attr({
 							x: 50,
@@ -227,6 +233,8 @@ block content
 									return 'rgb(' + ((d.id*89) % 256) + ',' + ((d.id*57) % 256) + ',' + ((d.id*17) % 256) + ')'
 							}
 					});
+				*/
+				/*
 				enteringTaxis.append('text')
 					.attr({
 						'x': function(d){ 
@@ -234,13 +242,13 @@ block content
 							else if (d.id < 100) return 50 + 6;
 							else return 50 + 3;
 						},
-						'y':50 + 5,
+						'y':50 + 16,
 						'dy':'.45em',
-						'fill':function(d){
-								return getContrast50(d.id)
-						}
+						'fill': 'black'//function(d){
+								//return getContrast50(d.id)}
 					})
 					.text(function(d){ return d.id })
+				*/
 
 				markers.exit().remove();
 
@@ -391,7 +399,11 @@ block content
 						}
 					}
 				}
+
+
 			}
+
+			// assign colors to the graphs based on number of nodes
 		}
 
 		function getContrast50(id){
