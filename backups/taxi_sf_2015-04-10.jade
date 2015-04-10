@@ -154,21 +154,6 @@ block content
 				.style("top", position.y+y_padding + "px")
 			}
 
-
-			function createSVG(d){
-
-				var radius = position2.x - position1.x;
-
-				d3.select(this)
-					.style("left", position1.x - radius/2 + "px")
-					.style("top", position1.y - radius/2 + "px")
-					.attr({
-						height: radius,
-						width: radius,
-					});
-
-			}
-
 			function drawCoverages(d){
 				var dy = convertMtoLL(coverageRadius*2);
 				var LatLng1 = new google.maps.LatLng(d.x, d.y);
@@ -213,25 +198,18 @@ block content
 			}
 
 			this.onAdd = function() {
-				main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
+				_div  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
+				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','edge-layer');
 			};
 
 			this.onRemove = function() {
-				layer.remove();
+				//_div.remove();
+				//_div2.remove();
 			};
 
 			this.update = function(){
-	
-				// for each taxi, create a (placeholder) svg which will contain the node under the main-layer div
-				var svg = main_layer.selectAll('svg').data(taxis, function(d){return d.id})
-				var entering_svg = svg.enter().append('svg')
 
-				svg.each(create())
-
-				svg.exit().remove();
-
-
-
+				var coverages = _div2.selectAll('svg').data(taxis).each(drawCoverages);
 				var enteringCoverages = coverages.enter().append('svg').each(drawCoverages).attr('class','coverage');
 				coverages.exit().remove();
 
@@ -276,32 +254,8 @@ block content
 			}; // end this.update
 
 
-			
 			this.draw = function() {
-
 				_projection = this.getProjection();
-
-				// The draw function is called at the start, and also whenever we zoom in and out on the map.
-				// One of the things we have to do everytime we zoom in and out is to recalculate the size of
-				// coverage radius in terms of 
-				// node, relative to the zoom level 
-
-				// dy is the coverage radius in terms of longitudinal coordinate (at the equator)
-				//
-				//    For example, if the coverage radius is 500 metres, then we need to draw an svg that
-				//    correspond to a 1000m by 1000m square. Assuming we are at the equator, then one longitudinal
-				//    degree corresponds to about 111,320 metres, so conversely, each metre corresponds to a change 
-				//    of 0.0000089831118 in longitudinal degree.
-				var dy = convertMtoLL(coverageRadius*2);
-
-				// 	  
-				var LatLng1 = new google.maps.LatLng(d.x, d.y);
-				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
-
-				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
-				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
-
-
 				this.update();
 					
 			};

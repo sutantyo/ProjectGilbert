@@ -24,8 +24,14 @@ app.set('view engine', 'jade');
 var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
 //:var connectionString = process.env.DATABASE_URL;
 
-app.get(['/','/home'], function(req,res){
+app.get(['/roma'], function(req,res){
 	res.render('taxi_roma',
+		{ title : 'Project Gilbert' }
+	);
+});
+
+app.get(['/sanfransisco'], function(req,res){
+	res.render('taxi_sf',
 		{ title : 'Project Gilbert' }
 	);
 });
@@ -97,5 +103,32 @@ app.get('/taxi_roma/time', function(req,res){
 			client.end();
 		});
 	});
+});
+
+
+app.get('/taxi_sf/time', function(req,res){
+	if (req.query.start && req.query.end)
+	{
+		var startTime = req.query.start;
+		var endTime = req.query.end;
+		console.log('calling to get coordinates');
+		pg.connect(connectionString, function(err,client,done){
+			if(err)
+				return console.error('error fetching client from pool', err);
+			client.query("SELECT id, x, y FROM taxi_sf_epoch WHERE time >= '" + startTime + "' AND time < '" + endTime +"'", function (err,result){
+				done();
+				if (err){
+					return console.error('error running query',err);
+					res.status(500).send('Error running query');
+				}
+				var json_response = JSON.stringify(result.rows);
+				res.writeHead(200,{'content-type':'application/json','content-length':Buffer.byteLength(json_response)});
+				res.end(json_response);
+				client.end();
+			});
+		});
+	}
+	else
+		res.status(400).send("Incorrect GET parameters");
 });
 

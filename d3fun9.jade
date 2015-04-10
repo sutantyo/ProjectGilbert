@@ -1,0 +1,29 @@
+extend layout
+block content
+
+	.container
+		.page-header
+				h2 d3.js Path transition
+
+		p. 
+
+		#drawspace
+
+
+	script.
+
+		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
+			zoom: 15,
+			center: new google.maps.LatLng(37.7833,-122.4167),
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+		});
+		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
+		map.setOptions({styles: styles});
+
+		taxiGPS.prototype = new google.maps.OverlayView();
+		var taxiLayer = new taxiGPS();
+
+		// bind the overlay to the map (thus calling overlay.onAdd)
+		taxiLayer.setMap(map);
+
+
