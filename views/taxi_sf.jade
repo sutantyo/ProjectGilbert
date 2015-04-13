@@ -5,14 +5,14 @@ block content
 	style(type='text/css').
 		html,body,#taxi-anim {
 			width: 100%;
-			height: 100%;
+			height: 90%;
 			margin: 0;
 			padding: 0 20px 0 30px;
 		}
 		.marker, .coverage, .boundaries{
 			position: absolute
 		}
-		.ligne{
+		.line{
 			position: absolute
 		}
 
@@ -24,11 +24,11 @@ block content
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 8;
+		var frameLimit = 100;
 		var frame = 1;
 				
-		var framePause = 5000;
-		var frameTransition = framePause-1000;
+		var framePause = 2000;
+		var frameTransition = framePause-200;
 
 
 		// parameters specific to Taxi SF dataset:
@@ -36,7 +36,7 @@ block content
 		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
 		// ... if the timestamp is GMT, then subtract 8 for SF
 
-		var time_increments = 60
+		var time_increments = 45;
 		var startTime = 1211018404;
 		var endTime = startTime + time_increments;
 
@@ -191,6 +191,7 @@ block content
 
 				var connections = _main_svg.selectAll('path').data(_graph_edges,function(d){return d.id});
 				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
+				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
 
 				connections.transition()
 					.duration(frameTransition*0.8)
@@ -217,15 +218,16 @@ block content
 					.attr({
 						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
 						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':5,
+						'r':2,
 						'fill': function(d){return d.color},
 						'fill-opacity' : 1
 					});
+
 				taxis.enter().append('circle')
 					.attr({
 						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
 						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':5,
+						'r':2,
 						'fill': function(d){return d.color},
 						'class': 'marker'
 					})
@@ -240,31 +242,34 @@ block content
 					.remove();
 
 			/*
-				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
 				labels.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.8)
 					.attr({
 						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
 						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
 						'fill':'black'
 					})
 					.text(function(d){ return d.id });
+
 				labels.enter().append('text')
 					.attr({
 						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
 						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
-						'fill':'black'
+						'fill':'black',
+						'class':'marker'
 					})
+					.text(function(d){ return d.id })
 					.style('fill-opacity',1e-6)
-				.transition()
-					.duration(frameTransition)
-					.style('fill-opacity',1);
+					.transition()
+						.duration(frameTransition*0.8)
+						.style('fill-opacity',1);
+
 				labels.exit()
 					.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.25)
 					.style('fill-opacity',1e-6)
 					.remove();
-				*/
+			*/
 			}; // end this.update
 
 			
