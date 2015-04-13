@@ -5,74 +5,83 @@ block content
 	style(type='text/css').
 		html,body,#taxi-anim {
 			width: 100%;
-			height: 100%;
+			height: 90%;
 			margin: 0;
 			padding: 0 20px 0 30px;
 		}
-		.marker, .coverage{
+		.marker, .coverage, .boundaries{
 			position: absolute
+		}
+		.line{
+			position: absolute;
 		}
 
 	.page-header
-		h2 Roma taxi
+		h2 Roma Taxi
 			small &nbsp animation of crawdad data
-
-	#info-panel
-		.div
-			h3 Time
-				span#info-time.large
 
 	#taxi-anim
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 10000;
+		var frameLimit = 5000;
 		var frame = 1;
 		var framePause = 10;
+
+		// parameters specific to Taxi SF dataset:
+		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
+		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
+		// ... if the timestamp is GMT, then subtract 8 for SF
+
 		var startTime = new Date(2000,1,1,12,0,0,0);
 		var endTime = new Date(2000,1,1,12,0,15,0);
 
+		// boundary points for our svg
+		var boundary_points = [ {id : 'NW', x: 42.23961, y: 12.04925},
+											  		{id : 'NE', x: 42.23961, y: 12.85368},
+											  		{id : 'SE', x: 41.65899, y: 12.85368},
+											  		{id : 'SW', x: 41.65899, y: 12.04925} ];
 
 		// parameters for the graph
 		var coverageRadius = 500;
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
-		var taxis = [];
-		var edges = [];
+		var _graph_nodes = [];
+		var _graph_edges = [];
 
 		// create a map 
-		
-
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
-
-			zoom: 15,
-			center: new google.maps.LatLng(41.8975,12.4694),
-			//center: new google.maps.LatLng(41.8835,12.4974),
+			zoom: 14,
+			center: new google.maps.LatLng(41.90759354,12.48991750),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		});
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
-		taxiGPS.prototype = new google.maps.OverlayView();
-		var taxiLayer = new taxiGPS();
+		// extend Google Maps' OverlayView class and create a new OverlayView object
+		OverlayView.prototype = new google.maps.OverlayView();
+		var overlay = new OverlayView();
+
 		// bind the overlay to the map (thus calling overlay.onAdd)
-		taxiLayer.setMap(map);
-
-
-		// initialise the info-panel
-		d3.select('#info-time').append('text').text('  ' + startTime.toTimeString().substr(0,8));
-
+		overlay.setMap(map);
 
 		// start the chain
-		setTimeout(function(){_updatePoints(taxiLayer);},20);
-		setInterval(function() {
-			if (frame++ < frameLimit)
-				_updatePoints(taxiLayer);
-		}, 20);	
 
 
 
-		function _updatePoints(taxiLayer){
+		var refreshID = setInterval(function(){
+			console.log(frame);
+			_updatePoints(overlay)
+
+			startTime.setSeconds(startTime.getSeconds()+15);
+			endTime.setSeconds(endTime.getSeconds()+15);
+			if (++frame > frameLimit)
+				clearInterval(refreshID);
+			},200);
+			
+
+
+		function _updatePoints(overlay){
 			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
 																									 startTime.toTimeString().substr(3,2) + 'm' +
 																									 startTime.toTimeString().substr(6,2) + 's&end=' +
@@ -82,7 +91,8 @@ block content
 				function(error,data)
 				{
 					//console.log('Frame: ' + frame + ' start time: ' + startTime);
-					taxis.length = 0;
+					_graph_nodes.length = 0;
+					_graph_edges.length = 0;
 
 					var _duplicate_check = [];
 					data.forEach(function(datum){
@@ -91,7 +101,7 @@ block content
 							//if (datum.id == 352 || datum.id == 234 || datum.id == 37 || datum.id == 310 || datum.id == 322)
 							{
 							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
-								taxis.push({id: Number(datum.id), x: Number(datum.x), y: Number(datum.y), neighbours: []});
+								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
 								_duplicate_check.push(datum.id);
 							}
 						}
@@ -132,144 +142,149 @@ block content
 						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
 					});
 					
-					taxiLayer.update();
-
-					startTime.setSeconds(startTime.getSeconds()+15);
-					endTime.setSeconds(endTime.getSeconds()+15);
-
-					d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
+					overlay.update();
 			}); // end d3.json
 		};
 
 
-		function taxiGPS(){
+		function OverlayView(){
 
 			var _projection;
-			var _div;
-			var _div2;
+			var _main_layer
 
 			var x_padding = 62;
 			var y_padding = -56;
 
-			function transformCoord(d){
+
+			this.onAdd = function() {
+				_main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
+				_main_svg	=	_main_layer.append('svg')
+					.attr({
+						'class':'boundaries'
+					})
+			};
+
+			this.onRemove = function() {
+				_main_layer.remove();
+			};
+
+			this.draw = function() {
+				console.log("called draw");
+				_projection = this.getProjection();
+				this.update();
+			};
+
+			this.update = function(){
+				console.log("called update");
+
+				var _NW_point = find_pixel_position_of(boundary_points[0]);
+				var _NW = {x : _NW_point.x, y : _NW_point.y};
+
+				_main_svg
+					.style('left', _NW.x + 'px')
+					.style('top', _NW.y + 'px')
+					.attr({
+						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
+						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
+						})					
+
+				var lineFunction = d3.svg.line()
+					.x(function(d) {return find_pixel_position_of(d).x - _NW.x;})
+					.y(function(d) {return find_pixel_position_of(d).y - _NW.y;})
+					.interpolate('linear');
+
+				var connections = _main_svg.selectAll('path').data(_graph_edges,function(d){return d.id});
+				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
+
+				connections.transition()
+					.duration(100)
+					.attr('d',function(d){return lineFunction(d.path);})
+					.style('stroke',function(d){return d.origin.color})
+				connections.enter().append('path')
+					.attr('d',function(d){return lineFunction(d.path);})
+					.style('stroke','blue')
+					.classed('line',true)
+					.style('stroke-width','0pt')
+					.style('stroke',function(d){return d.origin.color})
+					.transition()
+						.duration(100)
+						.style('stroke-width','0.5pt')
+				connections.exit()
+					.transition()
+					.duration(100)
+					.style('stroke-width','0pt')
+					.remove();
+
+				taxis.transition()
+					.duration(100)
+					.attr({
+						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
+						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
+						'r':5,
+						'fill': function(d){return d.color},
+						'fill-opacity' : 1
+					});
+				taxis.enter().append('circle')
+					.attr({
+						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
+						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
+						'r':5,
+						'fill': function(d){return d.color},
+						'class': 'marker'
+					})
+					.style('fill-opacity',1e-6)
+					.transition()
+						.duration(100)
+						.style('fill-opacity',1);
+				taxis.exit()
+					.transition()
+					.duration(100)
+					.style('fill-opacity',1e-6)
+					.remove();
+
+				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
+				labels.transition()
+					.duration(100)
+					.attr({
+						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
+						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
+						'fill':'black'
+					})
+					.text(function(d){ return d.id });
+				labels.enter().append('text')
+					.attr({
+						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
+						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
+						'fill':'black'
+					})
+					.style('fill-opacity',1e-6)
+				.transition()
+					.duration(100)
+					.style('fill-opacity',1);
+				labels.exit()
+					.transition()
+					.duration(100)
+					.style('fill-opacity',1e-6)
+					.remove();
+			}; // end this.update
+
+			
+
+			function find_pixel_position_of(d){
 				var LatLng = new google.maps.LatLng(d.x, d.y);
 				var position = _projection.fromLatLngToDivPixel(LatLng);
 				return position;
 			}
 
-			function transform(d) {
-				var position = transformCoord(d);
-				return d3.select(this)
-				.style("left", position.x-x_padding + "px")
-				.style("top", position.y+y_padding + "px")
-			}
-
-			function drawCoverages(d){
-				var dy = convertMtoLL(coverageRadius*2);
-				var LatLng1 = new google.maps.LatLng(d.x, d.y);
-				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
-
-				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
-				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
-
-				var radius = position2.x - position1.x;
-
-				d3.select(this)
-					.style("left", position1.x - radius/2 + "px")
-					.style("top", position1.y - radius/2 + "px")
-					.attr({
-						height: radius,
-						width: radius,
-					});
-					
-				var lines = d3.select(this).selectAll('line').data(d.neighbours);
-				lines.enter().append('line');
-				lines.attr({
-						'x1' : function(d){
-											return radius/2;
-										},
-						'y1' : function(d){
-											return radius/2;
-										},
-						'x2' : function(d){
-											return transformCoord(d).x - position1.x + radius/2;
-											//return transformCoord(d).x;
-										},
-						'y2' : function(d){
-											return transformCoord(d).y - position1.y + radius/2;
-											//return transformCoord(d).y;
-										},
-					  'style' : 'stroke-width:2',
-						'style' : function(d){return 'stroke:'+d.color} 
-					});
-				lines.exit().remove();
-
-			}
-
-			this.onAdd = function() {
-				_div  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
-				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','edge-layer');
+			function distance_in_pixels_between(d1,d2){
+				d1 = find_pixel_position_of(d1);
+				d2 = find_pixel_position_of(d2);
+				var distance = Math.sqrt((d2.x-d1.x)*(d2.x-d1.x)+(d2.y-d1.y)*(d2.y-d1.y));
+				return distance;
 			};
 
-			this.onRemove = function() {
-				//_div.remove();
-				//_div2.remove();
-			};
 
-			this.update = function(){
-
-				var coverages = _div2.selectAll('svg').data(taxis).each(drawCoverages);
-				var enteringCoverages = coverages.enter().append('svg').each(drawCoverages).attr('class','coverage');
-				coverages.exit().remove();
-
-
-				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id} ).each(transform)
-
-				//coverages.append('g').each(drawEdges);
-
-				// update entering items
-				var enteringTaxis = markers.enter().append('svg').each(transform)
-					.attr({ 'height' : 100, 'width' : 100, 'class' : 'marker', 'id' : function(d){return 'taxi-animation-'+d.id} })
-
-				enteringTaxis.append('circle')
-					.attr({
-						'cx' : 62, 'cy' : 56, 'r' : 20,
-						'fill' : function(d){return d.color},
-						})
-				
-				markers.select('circle')
-					.attr({
-						'cx' : 62, 'cy' : 56, 'r' : 5,
-						'fill' : function(d){return d.color}
-						})
-				markers.exit().remove();
-
-				/*
-				enteringTaxis.append('text')
-					.attr({
-						'x': function(d){ 
-							if (d.id < 10) return 50 + 8;
-							else if (d.id < 100) return 50 + 6;
-							else return 50 + 3;
-						},
-						'y':50 + 16,
-						'dy':'.45em',
-						'fill': 'black'//function(d){
-								//return getContrast50(d.id)}
-					})
-					.text(function(d){ return d.id })
-					*/
-
-			}; // end this.update
-
-
-			this.draw = function() {
-				_projection = this.getProjection();
-				this.update();
-					
-			};
-
-		}
+		}// end class 
 
 
 		// Find the distance (in metres) between two coordinates on the map
@@ -298,18 +313,22 @@ block content
 
 		function _graph_findNeighbours()
 		{
-			for (var i = 0; i < taxis.length; i++)
+			for (var i = 0; i < _graph_nodes.length; i++)
 			{
-				for (var j = 0; j < taxis.length; j++)
+				for (var j = 0; j < _graph_nodes.length; j++)
 				{
 					if (i != j)
 					{
-						if (convertLLtoM(taxis[i].x,taxis[i].y,taxis[j].x,taxis[j].y) < coverageRadius)
+						if (convertLLtoM(_graph_nodes[i].x,_graph_nodes[i].y,_graph_nodes[j].x,_graph_nodes[j].y) < coverageRadius)
 						{
-							if (taxis[i].neighbours.indexOf(taxis[j]) == -1)
+							if (_graph_nodes[i].neighbours.indexOf(_graph_nodes[j]) == -1)
 							{
-								taxis[i].neighbours.push(taxis[j]);
-								edges.push({origin: taxis[i].id, dest: taxis[j].id});
+								_graph_nodes[i].neighbours.push(_graph_nodes[j]);
+								_graph_edges.push({id: _graph_nodes[i].id + '-' + _graph_nodes[j].id,
+																	 origin: _graph_nodes[i], 
+																	 dest: _graph_nodes[j],
+																	 path: [{x: _graph_nodes[i].x, y: _graph_nodes[i].y},
+																	 				{x: _graph_nodes[j].x, y: _graph_nodes[j].y}]});
 							}
 						}
 					}
@@ -322,15 +341,15 @@ block content
 			var queue = [];
 			var set = [];
 
-			for (var i = 0; i < taxis.length; i++)
+			for (var i = 0; i < _graph_nodes.length; i++)
 			{
 				var current_graph = [];
 
-				if (set.indexOf(taxis[i]) == -1)
+				if (set.indexOf(_graph_nodes[i]) == -1)
 				{
-					queue.push(taxis[i]);
-					set.push(taxis[i]);	
-					current_graph.push(taxis[i]);
+					queue.push(_graph_nodes[i]);
+					set.push(_graph_nodes[i]);	
+					current_graph.push(_graph_nodes[i]);
 					while (queue.length > 0)
 					{
 						var q_head = queue.shift();
@@ -363,6 +382,7 @@ block content
 				var yiq = ((r*299)+(g*587)+(b*114))/1000;
 				return (yiq >= 128) ? 'black' : 'white';
 		}	
+
 
 
 

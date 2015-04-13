@@ -140,62 +140,6 @@ block content
 
 			var x_padding = 62;
 			var y_padding = -56;
-
-			function transformCoord(d){
-				var LatLng = new google.maps.LatLng(d.x, d.y);
-				var position = _projection.fromLatLngToDivPixel(LatLng);
-				return position;
-			}
-
-			function transform(d) {
-				var position = transformCoord(d);
-				return d3.select(this)
-				.style("left", position.x-x_padding + "px")
-				.style("top", position.y+y_padding + "px")
-			}
-
-			function drawCoverages(d){
-				var dy = convertMtoLL(coverageRadius*2);
-				var LatLng1 = new google.maps.LatLng(d.x, d.y);
-				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
-
-				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
-				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
-
-				var radius = position2.x - position1.x;
-
-				d3.select(this)
-					.style("left", position1.x - radius/2 + "px")
-					.style("top", position1.y - radius/2 + "px")
-					.attr({
-						height: radius,
-						width: radius,
-					});
-					
-				var lines = d3.select(this).selectAll('line').data(d.neighbours);
-				lines.enter().append('line');
-				lines.attr({
-						'x1' : function(d){
-											return radius/2;
-										},
-						'y1' : function(d){
-											return radius/2;
-										},
-						'x2' : function(d){
-											return transformCoord(d).x - position1.x + radius/2;
-											//return transformCoord(d).x;
-										},
-						'y2' : function(d){
-											return transformCoord(d).y - position1.y + radius/2;
-											//return transformCoord(d).y;
-										},
-					  'style' : 'stroke-width:2',
-						'style' : function(d){return 'stroke:'+d.color} 
-					});
-				lines.exit().remove();
-
-			}
-
 			this.onAdd = function() {
 				_div  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
 				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','edge-layer');
@@ -258,6 +202,62 @@ block content
 				this.update();
 					
 			};
+
+			function transformCoord(d){
+				var LatLng = new google.maps.LatLng(d.x, d.y);
+				var position = _projection.fromLatLngToDivPixel(LatLng);
+				return position;
+			}
+
+			function transform(d) {
+				var position = transformCoord(d);
+				return d3.select(this)
+				.style("left", position.x-x_padding + "px")
+				.style("top", position.y+y_padding + "px")
+			}
+
+			function drawCoverages(d){
+				var dy = convertMtoLL(coverageRadius*2);
+				var LatLng1 = new google.maps.LatLng(d.x, d.y);
+				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
+
+				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
+				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
+
+				var radius = position2.x - position1.x;
+
+				d3.select(this)
+					.style("left", position1.x - radius/2 + "px")
+					.style("top", position1.y - radius/2 + "px")
+					.attr({
+						height: radius,
+						width: radius,
+					});
+					
+				var lines = d3.select(this).selectAll('line').data(d.neighbours);
+				lines.enter().append('line');
+				lines.attr({
+						'x1' : function(d){
+											return radius/2;
+										},
+						'y1' : function(d){
+											return radius/2;
+										},
+						'x2' : function(d){
+											return transformCoord(d).x - position1.x + radius/2;
+											//return transformCoord(d).x;
+										},
+						'y2' : function(d){
+											return transformCoord(d).y - position1.y + radius/2;
+											//return transformCoord(d).y;
+										},
+					  'style' : 'stroke-width:2',
+						'style' : function(d){return 'stroke:'+d.color} 
+					});
+				lines.exit().remove();
+
+			}
+
 
 		}
 

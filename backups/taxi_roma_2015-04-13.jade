@@ -9,81 +9,80 @@ block content
 			margin: 0;
 			padding: 0 20px 0 30px;
 		}
-		.marker, .coverage, .boundaries{
-			position: absolute
-		}
-		.ligne{
+		.marker, .coverage{
 			position: absolute
 		}
 
 	.page-header
-		h2 San Fransisco taxi
+		h2 Roma taxi
 			small &nbsp animation of crawdad data
+
+	#info-panel
+		.div
+			h3 Time
+				span#info-time.large
 
 	#taxi-anim
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 2000;
+		var frameLimit = 10000;
 		var frame = 1;
 		var framePause = 10;
+		var startTime = new Date(2000,1,1,12,0,0,0);
+		var endTime = new Date(2000,1,1,12,0,15,0);
 
-		// parameters specific to Taxi SF dataset:
-		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
-		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
-		// ... if the timestamp is GMT, then subtract 8 for SF
-
-		var time_increments = 60
-		var startTime = 1211018404;
-		var endTime = startTime + time_increments;
-
-		// boundary points for our svg
-		var boundary_points = [ {id : 'NW', x: 37.99999, y: -122.56000},
-											  		{id : 'NE', x: 37.99999, y: -122.00000},
-											  		{id : 'SE', x: 37.20000, y: -122.00000},
-											  		{id : 'SW', x: 37.20000, y: -122.56000} ];
 
 		// parameters for the graph
-		var coverageRadius = 100;
+		var coverageRadius = 500;
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
-		var _graph_nodes = [];
-		var _graph_edges = [];
+		var taxis = [];
+		var edges = [];
 
 		// create a map 
+		
+
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
+
 			zoom: 15,
-			center: new google.maps.LatLng(37.7833,-122.4167),
+			center: new google.maps.LatLng(41.8975,12.4694),
+			//center: new google.maps.LatLng(41.8835,12.4974),
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 		});
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
-		// extend Google Maps' OverlayView class and create a new OverlayView object
-		OverlayView.prototype = new google.maps.OverlayView();
-		var overlay = new OverlayView();
-
+		taxiGPS.prototype = new google.maps.OverlayView();
+		var taxiLayer = new taxiGPS();
 		// bind the overlay to the map (thus calling overlay.onAdd)
-		overlay.setMap(map);
+		taxiLayer.setMap(map);
+
+
+		// initialise the info-panel
+		d3.select('#info-time').append('text').text('  ' + startTime.toTimeString().substr(0,8));
+
 
 		// start the chain
-
-
-		setTimeout(function(){_updatePoints(overlay);},500);
-		loop();
-
-		function loop(){
-			_updatePoints(overlay);
+		setTimeout(function(){_updatePoints(taxiLayer);},20);
+		setInterval(function() {
 			if (frame++ < frameLimit)
-				setTimeout(loop(),2000);
-		};
+				_updatePoints(taxiLayer);
+		}, 20);	
 
 
-		function _updatePoints(overlay){
-			d3.json('/taxi_sf/time?start=' + startTime + '&end=' + endTime, function(error,data)
+
+		function _updatePoints(taxiLayer){
+			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
+																									 startTime.toTimeString().substr(3,2) + 'm' +
+																									 startTime.toTimeString().substr(6,2) + 's&end=' +
+																									 endTime.toTimeString().substr(0,2) + 'h' + 
+																									 endTime.toTimeString().substr(3,2) + 'm' + 
+																									 endTime.toTimeString().substr(6,2) + 's', 
+				function(error,data)
 				{
 					//console.log('Frame: ' + frame + ' start time: ' + startTime);
-					_graph_nodes.length = 0;
+					taxis.length = 0;
 
 					var _duplicate_check = [];
 					data.forEach(function(datum){
@@ -92,7 +91,7 @@ block content
 							//if (datum.id == 352 || datum.id == 234 || datum.id == 37 || datum.id == 310 || datum.id == 322)
 							{
 							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
-								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
+								taxis.push({id: Number(datum.id), x: Number(datum.x), y: Number(datum.y), neighbours: []});
 								_duplicate_check.push(datum.id);
 							}
 						}
@@ -133,74 +132,38 @@ block content
 						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
 					});
 					
-					overlay.update();
+					taxiLayer.update();
 
-					startTime = startTime+time_increments;
-					endTime = endTime+time_increments;
-			
+					startTime.setSeconds(startTime.getSeconds()+15);
+					endTime.setSeconds(endTime.getSeconds()+15);
+
+					d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
 			}); // end d3.json
 		};
 
 
-		function OverlayView(){
+		function taxiGPS(){
 
 			var _projection;
-			var _main_layer
+			var _div;
+			var _div2;
 
 			var x_padding = 62;
 			var y_padding = -56;
 
+			function transformCoord(d){
+				var LatLng = new google.maps.LatLng(d.x, d.y);
+				var position = _projection.fromLatLngToDivPixel(LatLng);
+				return position;
+			}
 
-			this.onAdd = function() {
-				_main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
-				_main_svg	=	_main_layer.append('svg')
-					.attr({
-						'class':'boundaries'
-					})
-			};
+			function transform(d) {
+				var position = transformCoord(d);
+				return d3.select(this)
+				.style("left", position.x-x_padding + "px")
+				.style("top", position.y+y_padding + "px")
+			}
 
-			this.onRemove = function() {
-				_main_layer.remove();
-			};
-
-			this.draw = function() {
-				console.log("called draw");
-				_projection = this.getProjection();
-				this.update();
-			};
-
-			this.update = function(){
-				console.log("called update");
-
-				var _NW_point = find_pixel_position_of(boundary_points[0]);
-				var _NW = {x : _NW_point.x, y : _NW_point.y};
-
-				_main_svg
-					.style('left', _NW.x + 'px')
-					.style('top', _NW.y + 'px')
-					.attr({
-						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
-						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
-						})					
-
-				var entering_taxis = _main_svg.selectAll('circle').data(_graph_nodes, function(d){return d.id})
-					.enter().append('circle').attr('class','marker');
-				var taxis = _main_svg.selectAll('circle')
-					.transition()
-					.attr({
-						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
-						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':5,
-						'fill':'red'
-					});
-				_main_svg.selectAll('circle').exit().remove();
-
-				
-
-				// for each taxi, create a (placeholder) svg which will contain the node under the main-layer div
-			}; // end this.update
-
-			
 			function drawCoverages(d){
 				var dy = convertMtoLL(coverageRadius*2);
 				var LatLng1 = new google.maps.LatLng(d.x, d.y);
@@ -221,8 +184,7 @@ block content
 					
 				var lines = d3.select(this).selectAll('line').data(d.neighbours);
 				lines.enter().append('line');
-
-				lines.transition().attr({
+				lines.attr({
 						'x1' : function(d){
 											return radius/2;
 										},
@@ -230,56 +192,84 @@ block content
 											return radius/2;
 										},
 						'x2' : function(d){
-											return find_pixel_position_of(d).x - position1.x + radius/2;
-											//return find_pixel_position_of(d).x;
+											return transformCoord(d).x - position1.x + radius/2;
+											//return transformCoord(d).x;
 										},
 						'y2' : function(d){
-											return find_pixel_position_of(d).y - position1.y + radius/2;
-											//return find_pixel_position_of(d).y;
+											return transformCoord(d).y - position1.y + radius/2;
+											//return transformCoord(d).y;
 										},
 					  'style' : 'stroke-width:2',
 						'style' : function(d){return 'stroke:'+d.color} 
 					});
 				lines.exit().remove();
+
 			}
 
-			function find_pixel_position_of(d){
-				var LatLng = new google.maps.LatLng(d.x, d.y);
-				var position = _projection.fromLatLngToDivPixel(LatLng);
-				return position;
-			}
-
-			function distance_in_pixels_between(d1,d2){
-				d1 = find_pixel_position_of(d1);
-				d2 = find_pixel_position_of(d2);
-				var distance = Math.sqrt((d2.x-d1.x)*(d2.x-d1.x)+(d2.y-d1.y)*(d2.y-d1.y));
-				return distance;
+			this.onAdd = function() {
+				_div  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','node-layer');
+				_div2 = d3.select(this.getPanes().overlayLayer).append('div').attr('id','edge-layer');
 			};
 
+			this.onRemove = function() {
+				//_div.remove();
+				//_div2.remove();
+			};
 
-			function transform(d) {
-				var position = find_pixel_position_of(d);
-				return d3.select(this)
-				.transition()
-				.style("left", position.x-x_padding + "px")
-				.style("top", position.y+y_padding + "px")
-			}
+			this.update = function(){
+
+				var coverages = _div2.selectAll('svg').data(taxis).each(drawCoverages);
+				var enteringCoverages = coverages.enter().append('svg').each(drawCoverages).attr('class','coverage');
+				coverages.exit().remove();
 
 
-				function createSVG(d){
+				var markers = _div.selectAll('svg').data(taxis, function(d){return d.id} ).each(transform)
 
-					var radius = position2.x - position1.x;
+				//coverages.append('g').each(drawEdges);
 
-					d3.select(this)
-						.style("left", position1.x - radius/2 + "px")
-						.style("top", position1.y - radius/2 + "px")
-						.attr({
-							height: radius,
-							width: radius,
-						});
+				// update entering items
+				var enteringTaxis = markers.enter().append('svg').each(transform)
+					.attr({ 'height' : 100, 'width' : 100, 'class' : 'marker', 'id' : function(d){return 'taxi-animation-'+d.id} })
 
-				}
-		}// end class 
+				enteringTaxis.append('circle')
+					.attr({
+						'cx' : 62, 'cy' : 56, 'r' : 20,
+						'fill' : function(d){return d.color},
+						})
+				
+				markers.select('circle')
+					.attr({
+						'cx' : 62, 'cy' : 56, 'r' : 5,
+						'fill' : function(d){return d.color}
+						})
+				markers.exit().remove();
+
+				/*
+				enteringTaxis.append('text')
+					.attr({
+						'x': function(d){ 
+							if (d.id < 10) return 50 + 8;
+							else if (d.id < 100) return 50 + 6;
+							else return 50 + 3;
+						},
+						'y':50 + 16,
+						'dy':'.45em',
+						'fill': 'black'//function(d){
+								//return getContrast50(d.id)}
+					})
+					.text(function(d){ return d.id })
+					*/
+
+			}; // end this.update
+
+
+			this.draw = function() {
+				_projection = this.getProjection();
+				this.update();
+					
+			};
+
+		}
 
 
 		// Find the distance (in metres) between two coordinates on the map
@@ -308,18 +298,18 @@ block content
 
 		function _graph_findNeighbours()
 		{
-			for (var i = 0; i < _graph_nodes.length; i++)
+			for (var i = 0; i < taxis.length; i++)
 			{
-				for (var j = 0; j < _graph_nodes.length; j++)
+				for (var j = 0; j < taxis.length; j++)
 				{
 					if (i != j)
 					{
-						if (convertLLtoM(_graph_nodes[i].x,_graph_nodes[i].y,_graph_nodes[j].x,_graph_nodes[j].y) < coverageRadius)
+						if (convertLLtoM(taxis[i].x,taxis[i].y,taxis[j].x,taxis[j].y) < coverageRadius)
 						{
-							if (_graph_nodes[i].neighbours.indexOf(_graph_nodes[j]) == -1)
+							if (taxis[i].neighbours.indexOf(taxis[j]) == -1)
 							{
-								_graph_nodes[i].neighbours.push(_graph_nodes[j]);
-								_graph_edges.push({origin: _graph_nodes[i].id, dest: _graph_nodes[j].id});
+								taxis[i].neighbours.push(taxis[j]);
+								edges.push({origin: taxis[i].id, dest: taxis[j].id});
 							}
 						}
 					}
@@ -332,15 +322,15 @@ block content
 			var queue = [];
 			var set = [];
 
-			for (var i = 0; i < _graph_nodes.length; i++)
+			for (var i = 0; i < taxis.length; i++)
 			{
 				var current_graph = [];
 
-				if (set.indexOf(_graph_nodes[i]) == -1)
+				if (set.indexOf(taxis[i]) == -1)
 				{
-					queue.push(_graph_nodes[i]);
-					set.push(_graph_nodes[i]);	
-					current_graph.push(_graph_nodes[i]);
+					queue.push(taxis[i]);
+					set.push(taxis[i]);	
+					current_graph.push(taxis[i]);
 					while (queue.length > 0)
 					{
 						var q_head = queue.shift();
