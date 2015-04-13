@@ -27,8 +27,8 @@ block content
 		var frameLimit = 5000;
 		var frame = 1;
 		
-		var framePause = 600;
-		var frameTransition = framePause-20;
+		var framePause = 800;
+		var frameTransition = framePause-50;
 
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
@@ -199,7 +199,7 @@ block content
 				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
 
 				connections.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.8)
 					.attr('d',function(d){return lineFunction(d.path);})
 					.style('stroke',function(d){return d.origin.color})
 				connections.enter().append('path')
@@ -209,16 +209,17 @@ block content
 					.style('stroke-width','0pt')
 					.style('stroke',function(d){return d.origin.color})
 					.transition()
-						.duration(frameTransition)
+						.delay(frameTransition*0.8)
+						.duration(frameTransition*0.2)
 						.style('stroke-width','0.5pt')
 				connections.exit()
 					.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.25)
 					.style('stroke-width','0pt')
 					.remove();
 
 				taxis.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.8)
 					.attr({
 						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
 						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
@@ -236,11 +237,11 @@ block content
 					})
 					.style('fill-opacity',1e-6)
 					.transition()
-						.duration(frameTransition)
+						.duration(frameTransition*0.8)
 						.style('fill-opacity',1);
 				taxis.exit()
 					.transition()
-					.duration(frameTransition)
+					.duration(frameTransition*0.25)
 					.style('fill-opacity',1e-6)
 					.remove();
 
@@ -370,20 +371,8 @@ block content
 						}
 					}
 				}
-
-
 			}
-
-			// assign colors to the graphs based on number of nodes
 		}
-
-		function getContrast50(id){
-				var r = id*89%256;
-				var g = id*57%256;
-				var b = id*17%256; 
-				var yiq = ((r*299)+(g*587)+(b*114))/1000;
-				return (yiq >= 128) ? 'black' : 'white';
-		}	
 
 
 

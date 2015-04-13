@@ -24,9 +24,12 @@ block content
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 2000;
+		var frameLimit = 8;
 		var frame = 1;
-		var framePause = 10;
+				
+		var framePause = 5000;
+		var frameTransition = framePause-1000;
+
 
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
@@ -44,7 +47,7 @@ block content
 											  		{id : 'SW', x: 37.20000, y: -122.56000} ];
 
 		// parameters for the graph
-		var coverageRadius = 100;
+		var coverageRadius = 300;
 
 		// container (and lookup table) for the data, i.e. GPS location of taxis
 		var _graph_nodes = [];
@@ -69,21 +72,23 @@ block content
 		// start the chain
 
 
-		setTimeout(function(){_updatePoints(overlay);},500);
-		loop();
 
-		function loop(){
-			_updatePoints(overlay);
-			if (frame++ < frameLimit)
-				setTimeout(loop(),2000);
-		};
+		var refreshID = setInterval(function(){
+			console.log(frame);
+			_updatePoints(overlay)
 
+			startTime = endTime;
+			endTime = endTime + time_increments;
+			if (++frame > frameLimit)
+				clearInterval(refreshID);
+			},framePause);
 
 		function _updatePoints(overlay){
 			d3.json('/taxi_sf/time?start=' + startTime + '&end=' + endTime, function(error,data)
 				{
 					//console.log('Frame: ' + frame + ' start time: ' + startTime);
 					_graph_nodes.length = 0;
+					_graph_edges.length = 0;
 
 					var _duplicate_check = [];
 					data.forEach(function(datum){
@@ -134,10 +139,6 @@ block content
 					});
 					
 					overlay.update();
-
-					startTime = startTime+time_increments;
-					endTime = endTime+time_increments;
-			
 			}); // end d3.json
 		};
 
@@ -183,65 +184,90 @@ block content
 						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
 						})					
 
-				var entering_taxis = _main_svg.selectAll('circle').data(_graph_nodes, function(d){return d.id})
-					.enter().append('circle').attr('class','marker');
-				var taxis = _main_svg.selectAll('circle')
+				var lineFunction = d3.svg.line()
+					.x(function(d) {return find_pixel_position_of(d).x - _NW.x;})
+					.y(function(d) {return find_pixel_position_of(d).y - _NW.y;})
+					.interpolate('linear');
+
+				var connections = _main_svg.selectAll('path').data(_graph_edges,function(d){return d.id});
+				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
+
+				connections.transition()
+					.duration(frameTransition*0.8)
+					.attr('d',function(d){return lineFunction(d.path);})
+					.style('stroke',function(d){return d.origin.color})
+				connections.enter().append('path')
+					.attr('d',function(d){return lineFunction(d.path);})
+					.style('stroke','blue')
+					.classed('line',true)
+					.style('stroke-width','0pt')
+					.style('stroke',function(d){return d.origin.color})
 					.transition()
+						.delay(frameTransition*0.8)
+						.duration(frameTransition*0.2)
+						.style('stroke-width','0.5pt')
+				connections.exit()
+					.transition()
+					.duration(frameTransition*0.25)
+					.style('stroke-width','0pt')
+					.remove();
+
+				taxis.transition()
+					.duration(frameTransition*0.8)
 					.attr({
 						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
 						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
 						'r':5,
-						'fill':'red'
+						'fill': function(d){return d.color},
+						'fill-opacity' : 1
 					});
-				_main_svg.selectAll('circle').exit().remove();
+				taxis.enter().append('circle')
+					.attr({
+						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
+						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
+						'r':5,
+						'fill': function(d){return d.color},
+						'class': 'marker'
+					})
+					.style('fill-opacity',1e-6)
+					.transition()
+						.duration(frameTransition*0.8)
+						.style('fill-opacity',1);
+				taxis.exit()
+					.transition()
+					.duration(frameTransition*0.25)
+					.style('fill-opacity',1e-6)
+					.remove();
 
-				
-
-				// for each taxi, create a (placeholder) svg which will contain the node under the main-layer div
+			/*
+				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
+				labels.transition()
+					.duration(frameTransition)
+					.attr({
+						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
+						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
+						'fill':'black'
+					})
+					.text(function(d){ return d.id });
+				labels.enter().append('text')
+					.attr({
+						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
+						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
+						'fill':'black'
+					})
+					.style('fill-opacity',1e-6)
+				.transition()
+					.duration(frameTransition)
+					.style('fill-opacity',1);
+				labels.exit()
+					.transition()
+					.duration(frameTransition)
+					.style('fill-opacity',1e-6)
+					.remove();
+				*/
 			}; // end this.update
 
 			
-			function drawCoverages(d){
-				var dy = convertMtoLL(coverageRadius*2);
-				var LatLng1 = new google.maps.LatLng(d.x, d.y);
-				var LatLng2 = new google.maps.LatLng(d.x, d.y + dy);
-
-				var position1 = _projection.fromLatLngToDivPixel(LatLng1);
-				var position2 = _projection.fromLatLngToDivPixel(LatLng2);
-
-				var radius = position2.x - position1.x;
-
-				d3.select(this)
-					.style("left", position1.x - radius/2 + "px")
-					.style("top", position1.y - radius/2 + "px")
-					.attr({
-						height: radius,
-						width: radius,
-					});
-					
-				var lines = d3.select(this).selectAll('line').data(d.neighbours);
-				lines.enter().append('line');
-
-				lines.transition().attr({
-						'x1' : function(d){
-											return radius/2;
-										},
-						'y1' : function(d){
-											return radius/2;
-										},
-						'x2' : function(d){
-											return find_pixel_position_of(d).x - position1.x + radius/2;
-											//return find_pixel_position_of(d).x;
-										},
-						'y2' : function(d){
-											return find_pixel_position_of(d).y - position1.y + radius/2;
-											//return find_pixel_position_of(d).y;
-										},
-					  'style' : 'stroke-width:2',
-						'style' : function(d){return 'stroke:'+d.color} 
-					});
-				lines.exit().remove();
-			}
 
 			function find_pixel_position_of(d){
 				var LatLng = new google.maps.LatLng(d.x, d.y);
@@ -257,28 +283,6 @@ block content
 			};
 
 
-			function transform(d) {
-				var position = find_pixel_position_of(d);
-				return d3.select(this)
-				.transition()
-				.style("left", position.x-x_padding + "px")
-				.style("top", position.y+y_padding + "px")
-			}
-
-
-				function createSVG(d){
-
-					var radius = position2.x - position1.x;
-
-					d3.select(this)
-						.style("left", position1.x - radius/2 + "px")
-						.style("top", position1.y - radius/2 + "px")
-						.attr({
-							height: radius,
-							width: radius,
-						});
-
-				}
 		}// end class 
 
 
@@ -319,7 +323,11 @@ block content
 							if (_graph_nodes[i].neighbours.indexOf(_graph_nodes[j]) == -1)
 							{
 								_graph_nodes[i].neighbours.push(_graph_nodes[j]);
-								_graph_edges.push({origin: _graph_nodes[i].id, dest: _graph_nodes[j].id});
+								_graph_edges.push({id: _graph_nodes[i].id + '-' + _graph_nodes[j].id,
+																	 origin: _graph_nodes[i], 
+																	 dest: _graph_nodes[j],
+																	 path: [{x: _graph_nodes[i].x, y: _graph_nodes[i].y},
+																	 				{x: _graph_nodes[j].x, y: _graph_nodes[j].y}]});
 							}
 						}
 					}
@@ -359,20 +367,9 @@ block content
 						}
 					}
 				}
-
-
 			}
-
-			// assign colors to the graphs based on number of nodes
 		}
 
-		function getContrast50(id){
-				var r = id*89%256;
-				var g = id*57%256;
-				var b = id*17%256; 
-				var yiq = ((r*299)+(g*587)+(b*114))/1000;
-				return (yiq >= 128) ? 'black' : 'white';
-		}	
 
 
 
