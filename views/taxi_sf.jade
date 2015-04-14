@@ -1,4 +1,9 @@
 extend layout
+
+block additional_header
+
+	script(src='/js/overlay.js', charset='utf-8')
+
 block content
 
 
@@ -19,16 +24,23 @@ block content
 	.page-header
 		h2 San Fransisco taxi
 			small &nbsp animation of crawdad data
+			
+	#info-panel
+		.div
+			h3 Time
+				span#info-time.large
+
+
 
 	#taxi-anim
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 100;
+		var frameLimit = 10;
 		var frame = 1;
 				
 		var framePause = 2000;
-		var frameTransition = framePause-200;
+		var frameTransition = framePause-50;
 
 
 		// parameters specific to Taxi SF dataset:
@@ -68,17 +80,20 @@ block content
 
 		// bind the overlay to the map (thus calling overlay.onAdd)
 		overlay.setMap(map);
-
 		// start the chain
 
-
-
+		var currentTime = new Date(endTime*1000);
+		console.log(startTime);
+		console.log(currentTime);
+		d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
 		var refreshID = setInterval(function(){
 			console.log(frame);
 			_updatePoints(overlay)
 
-			startTime = endTime;
+			startTime = endTime+1;
 			endTime = endTime + time_increments;
+			currentTime = new Date(endTime*1000);
+			d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
 			if (++frame > frameLimit)
 				clearInterval(refreshID);
 			},framePause);
@@ -105,6 +120,7 @@ block content
 					_graph_findNeighbours();
 
 					graphs.length = 0;
+
 					_graph_buildGraph();
 
 					/*
@@ -138,157 +154,12 @@ block content
 						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
 					});
 					
+					overlay.nodes = _graph_nodes;
+					overlay.edges = _graph_edges;
 					overlay.update();
 			}); // end d3.json
 		};
 
-
-		function OverlayView(){
-
-			var _projection;
-			var _main_layer
-
-			var x_padding = 62;
-			var y_padding = -56;
-
-
-			this.onAdd = function() {
-				_main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
-				_main_svg	=	_main_layer.append('svg')
-					.attr({
-						'class':'boundaries'
-					})
-			};
-
-			this.onRemove = function() {
-				_main_layer.remove();
-			};
-
-			this.draw = function() {
-				console.log("called draw");
-				_projection = this.getProjection();
-				this.update();
-			};
-
-			this.update = function(){
-				console.log("called update");
-
-				var _NW_point = find_pixel_position_of(boundary_points[0]);
-				var _NW = {x : _NW_point.x, y : _NW_point.y};
-
-				_main_svg
-					.style('left', _NW.x + 'px')
-					.style('top', _NW.y + 'px')
-					.attr({
-						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
-						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
-						})					
-
-				var lineFunction = d3.svg.line()
-					.x(function(d) {return find_pixel_position_of(d).x - _NW.x;})
-					.y(function(d) {return find_pixel_position_of(d).y - _NW.y;})
-					.interpolate('linear');
-
-				var connections = _main_svg.selectAll('path').data(_graph_edges,function(d){return d.id});
-				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
-				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
-
-				connections.transition()
-					.duration(frameTransition*0.8)
-					.attr('d',function(d){return lineFunction(d.path);})
-					.style('stroke',function(d){return d.origin.color})
-				connections.enter().append('path')
-					.attr('d',function(d){return lineFunction(d.path);})
-					.style('stroke','blue')
-					.classed('line',true)
-					.style('stroke-width','0pt')
-					.style('stroke',function(d){return d.origin.color})
-					.transition()
-						.delay(frameTransition*0.8)
-						.duration(frameTransition*0.2)
-						.style('stroke-width','0.5pt')
-				connections.exit()
-					.transition()
-					.duration(frameTransition*0.25)
-					.style('stroke-width','0pt')
-					.remove();
-
-				taxis.transition()
-					.duration(frameTransition*0.8)
-					.attr({
-						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
-						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':2,
-						'fill': function(d){return d.color},
-						'fill-opacity' : 1
-					});
-
-				taxis.enter().append('circle')
-					.attr({
-						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
-						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':2,
-						'fill': function(d){return d.color},
-						'class': 'marker'
-					})
-					.style('fill-opacity',1e-6)
-					.transition()
-						.duration(frameTransition*0.8)
-						.style('fill-opacity',1);
-				taxis.exit()
-					.transition()
-					.duration(frameTransition*0.25)
-					.style('fill-opacity',1e-6)
-					.remove();
-
-			/*
-				labels.transition()
-					.duration(frameTransition*0.8)
-					.attr({
-						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
-						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
-						'fill':'black'
-					})
-					.text(function(d){ return d.id });
-
-				labels.enter().append('text')
-					.attr({
-						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
-						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
-						'fill':'black',
-						'class':'marker'
-					})
-					.text(function(d){ return d.id })
-					.style('fill-opacity',1e-6)
-					.transition()
-						.duration(frameTransition*0.8)
-						.style('fill-opacity',1);
-
-				labels.exit()
-					.transition()
-					.duration(frameTransition*0.25)
-					.style('fill-opacity',1e-6)
-					.remove();
-			*/
-			}; // end this.update
-
-			
-
-			function find_pixel_position_of(d){
-				var LatLng = new google.maps.LatLng(d.x, d.y);
-				var position = _projection.fromLatLngToDivPixel(LatLng);
-				return position;
-			}
-
-			function distance_in_pixels_between(d1,d2){
-				d1 = find_pixel_position_of(d1);
-				d2 = find_pixel_position_of(d2);
-				var distance = Math.sqrt((d2.x-d1.x)*(d2.x-d1.x)+(d2.y-d1.y)*(d2.y-d1.y));
-				return distance;
-			};
-
-
-		}// end class 
 
 
 		// Find the distance (in metres) between two coordinates on the map

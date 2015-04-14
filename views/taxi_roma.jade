@@ -1,4 +1,11 @@
 extend layout
+
+block additional_header
+
+	script(src='/js/overlay.js', charset='utf-8')
+	script(src='/js/graph.js', charset='utf-8')
+
+
 block content
 
 
@@ -20,15 +27,30 @@ block content
 		h2 Roma Taxi
 			small &nbsp animation of crawdad data
 
+	#info-panel
+		.row
+			.col-md-3
+				h3 Time
+					span#info-time.large
+			.col-md-3
+			.col-md-3
+			.col-md-3
+				button.button#start-button Start
+				button.button#stop-button Stop
+
 	#taxi-anim
 	script.
 
+		
+
 		// parameters to control the animation
-		var frameLimit = 5000;
+		var frameLimit = 40;
 		var frame = 1;
 		
 		var framePause = 800;
 		var frameTransition = framePause-50;
+
+		var proceed = false;
 
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
@@ -66,20 +88,23 @@ block content
 
 		// bind the overlay to the map (thus calling overlay.onAdd)
 		overlay.setMap(map);
+		overlay.setTransitTime(frameTransition);
 
 		// start the chain
-
-
-
+		d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
 		var refreshID = setInterval(function(){
 			console.log(frame);
-			_updatePoints(overlay)
+			if ( proceed == true)
+			{
+				_updatePoints(overlay)
 
-			startTime.setSeconds(startTime.getSeconds()+15);
-			endTime.setSeconds(endTime.getSeconds()+15);
-			if (++frame > frameLimit)
-				clearInterval(refreshID);
-			},framePause);
+				startTime.setSeconds(startTime.getSeconds()+15);
+				endTime.setSeconds(endTime.getSeconds()+15);
+				d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
+				if (++frame > frameLimit)
+					clearInterval(refreshID);
+			}
+		},framePause);
 			
 
 
@@ -144,237 +169,16 @@ block content
 						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
 					});
 					
+					overlay.nodes = _graph_nodes;
+					overlay.edges = _graph_edges;
 					overlay.update();
 			}); // end d3.json
 		};
 
 
-		function OverlayView(){
-
-			var _projection;
-			var _main_layer
-
-			var x_padding = 62;
-			var y_padding = -56;
 
 
-			this.onAdd = function() {
-				_main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
-				_main_svg	=	_main_layer.append('svg')
-					.attr({
-						'class':'boundaries'
-					})
-			};
-
-			this.onRemove = function() {
-				_main_layer.remove();
-			};
-
-			this.draw = function() {
-				console.log("called draw");
-				_projection = this.getProjection();
-				this.update();
-			};
-
-			this.update = function(){
-				console.log("called update");
-
-				var _NW_point = find_pixel_position_of(boundary_points[0]);
-				var _NW = {x : _NW_point.x, y : _NW_point.y};
-
-				_main_svg
-					.style('left', _NW.x + 'px')
-					.style('top', _NW.y + 'px')
-					.attr({
-						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
-						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
-						})					
-
-				var lineFunction = d3.svg.line()
-					.x(function(d) {return find_pixel_position_of(d).x - _NW.x;})
-					.y(function(d) {return find_pixel_position_of(d).y - _NW.y;})
-					.interpolate('linear');
-
-				var connections = _main_svg.selectAll('path').data(_graph_edges,function(d){return d.id});
-				var taxis = _main_svg.selectAll('circle').data(_graph_nodes,function(d){return d.id});
-
-				connections.transition()
-					.duration(frameTransition*0.8)
-					.attr('d',function(d){return lineFunction(d.path);})
-					.style('stroke',function(d){return d.origin.color})
-				connections.enter().append('path')
-					.attr('d',function(d){return lineFunction(d.path);})
-					.style('stroke','blue')
-					.classed('line',true)
-					.style('stroke-width','0pt')
-					.style('stroke',function(d){return d.origin.color})
-					.transition()
-						.delay(frameTransition*0.8)
-						.duration(frameTransition*0.2)
-						.style('stroke-width','0.5pt')
-				connections.exit()
-					.transition()
-					.duration(frameTransition*0.25)
-					.style('stroke-width','0pt')
-					.remove();
-
-				taxis.transition()
-					.duration(frameTransition*0.8)
-					.attr({
-						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
-						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':5,
-						'fill': function(d){return d.color},
-						'fill-opacity' : 1
-					});
-				taxis.enter().append('circle')
-					.attr({
-						'cx': function(d){return find_pixel_position_of(d).x - _NW.x},
-						'cy': function(d){return find_pixel_position_of(d).y - _NW.y},
-						'r':5,
-						'fill': function(d){return d.color},
-						'class': 'marker'
-					})
-					.style('fill-opacity',1e-6)
-					.transition()
-						.duration(frameTransition*0.8)
-						.style('fill-opacity',1);
-				taxis.exit()
-					.transition()
-					.duration(frameTransition*0.25)
-					.style('fill-opacity',1e-6)
-					.remove();
-
-				var labels = _main_svg.selectAll('text').data(_graph_nodes,function(d){return d.id});
-				labels.transition()
-					.duration(frameTransition)
-					.attr({
-						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
-						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
-						'fill':'black'
-					})
-					.text(function(d){ return d.id });
-				labels.enter().append('text')
-					.attr({
-						'x': function(d){return find_pixel_position_of(d).x - _NW.x + 7},
-						'y': function(d){return find_pixel_position_of(d).y - _NW.y + 5},
-						'fill':'black'
-					})
-					.style('fill-opacity',1e-6)
-				.transition()
-					.duration(frameTransition)
-					.style('fill-opacity',1);
-				labels.exit()
-					.transition()
-					.duration(frameTransition)
-					.style('fill-opacity',1e-6)
-					.remove();
-			}; // end this.update
-
-			
-
-			function find_pixel_position_of(d){
-				var LatLng = new google.maps.LatLng(d.x, d.y);
-				var position = _projection.fromLatLngToDivPixel(LatLng);
-				return position;
-			}
-
-			function distance_in_pixels_between(d1,d2){
-				d1 = find_pixel_position_of(d1);
-				d2 = find_pixel_position_of(d2);
-				var distance = Math.sqrt((d2.x-d1.x)*(d2.x-d1.x)+(d2.y-d1.y)*(d2.y-d1.y));
-				return distance;
-			};
-
-
-		}// end class 
-
-
-		// Find the distance (in metres) between two coordinates on the map
-		function convertLLtoM(lat1, lon1, lat2, lon2) {
-			var R = 6378.137
-			var a = 
-				 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 + 
-				 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-				 (1 - Math.cos((lon2 - lon1) * Math.PI / 180))/2;
-
-			return 1000 * R * 2 * Math.asin(Math.sqrt(a));
-		}
-
-		// Convert a distance in metres into change in longitudinal coordinate
-		// 
-		// We are doing something very lazy here: at the equator, 1 longitudinal degree
-		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
-		function convertMtoLL(m) {
-			return (m * 0.00000893831118);
-		}
-
-
-		// Graph-related codes
-
-		var graphs = [];
-
-		function _graph_findNeighbours()
-		{
-			for (var i = 0; i < _graph_nodes.length; i++)
-			{
-				for (var j = 0; j < _graph_nodes.length; j++)
-				{
-					if (i != j)
-					{
-						if (convertLLtoM(_graph_nodes[i].x,_graph_nodes[i].y,_graph_nodes[j].x,_graph_nodes[j].y) < coverageRadius)
-						{
-							if (_graph_nodes[i].neighbours.indexOf(_graph_nodes[j]) == -1)
-							{
-								_graph_nodes[i].neighbours.push(_graph_nodes[j]);
-								_graph_edges.push({id: _graph_nodes[i].id + '-' + _graph_nodes[j].id,
-																	 origin: _graph_nodes[i], 
-																	 dest: _graph_nodes[j],
-																	 path: [{x: _graph_nodes[i].x, y: _graph_nodes[i].y},
-																	 				{x: _graph_nodes[j].x, y: _graph_nodes[j].y}]});
-							}
-						}
-					}
-				}
-			}
-		}
-
-		function _graph_buildGraph()
-		{
-			var queue = [];
-			var set = [];
-
-			for (var i = 0; i < _graph_nodes.length; i++)
-			{
-				var current_graph = [];
-
-				if (set.indexOf(_graph_nodes[i]) == -1)
-				{
-					queue.push(_graph_nodes[i]);
-					set.push(_graph_nodes[i]);	
-					current_graph.push(_graph_nodes[i]);
-					while (queue.length > 0)
-					{
-						var q_head = queue.shift();
-						q_head.neighbours.forEach(
-							function(neighbour){
-								if (set.indexOf(neighbour) == -1)
-								{
-									queue.push(neighbour);
-									set.push(neighbour);
-									current_graph.push(neighbour);
-								}
-							});
-						if (queue.length == 0)
-						{
-							graphs.push(current_graph);
-						}
-					}
-				}
-			}
-		}
-
-
+		
 
 
 
