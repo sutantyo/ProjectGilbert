@@ -33,7 +33,21 @@
 				_projection = this.getProjection();
 				var _NW_point = find_pixel_position_of(boundary_points[0]);
 				offset = {x : _NW_point.x, y : _NW_point.y};
-				this.update();
+
+				_main_svg
+					.style('left', offset.x + 'px')
+					.style('top', offset.y + 'px')
+					.attr({
+						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
+						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
+						})					
+				var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
+				connections
+					.attr('d',function(d){return lineFunction(d.path)})
+					.style('stroke',function(d){return d.origin.color})
+				var taxis = _main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
+				taxis.each(update_circle_position2);
+
 			};
 
 			this.update = function(){
@@ -46,12 +60,7 @@
 						'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
 						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
 						})					
-
-				var lineFunction = d3.svg.line()
-					.x(function(d) {return find_pixel_position_of(d).x - offset.x;})
-					.y(function(d) {return find_pixel_position_of(d).y - offset.y;})
-					.interpolate('linear');
-					
+				
 				console.log(transitTime);
 				var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 				connections.transition()
@@ -115,9 +124,11 @@
 
 
 			}; // end this.update
-
-			
-
+			var lineFunction = d3.svg.line()
+				.x(function(d) {return find_pixel_position_of(d).x - offset.x;})
+				.y(function(d) {return find_pixel_position_of(d).y - offset.y;})
+				.interpolate('linear');
+	
 			function find_pixel_position_of(d){
 				var LatLng = new google.maps.LatLng(d.x, d.y);
 				var position = _projection.fromLatLngToDivPixel(LatLng);
@@ -140,7 +151,16 @@
 						'cy': function(d){return position.y - offset.y},
 						'fill': function(d){return d.color}
 					})
-
+			}
+			function update_circle_position2(d){
+				var position = find_pixel_position_of(d);
+				return d3.select(this)
+					.style('fill-opacity',1)
+					.attr({
+						'cx': function(d){return position.x - offset.x},
+						'cy': function(d){return position.y - offset.y},
+						'fill': function(d){return d.color}
+					})
 			}
 			function set_circle_position(d){
 				var position = find_pixel_position_of(d);

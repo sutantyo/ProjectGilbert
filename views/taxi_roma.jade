@@ -1,56 +1,70 @@
-extend layout
+extend layout_taxi
+append additional_header
 
-block additional_header
-
-	script(src='/js/overlay.js', charset='utf-8')
-	script(src='/js/graph.js', charset='utf-8')
-
-
-block content
-
-
-	style(type='text/css').
-		html,body,#taxi-anim {
-			width: 100%;
-			height: 90%;
-			margin: 0;
-			padding: 0 20px 0 30px;
-		}
-		.marker, .coverage, .boundaries{
-			position: absolute
-		}
-		.line{
-			position: absolute;
-		}
+append content
 
 	.page-header
 		h2 Roma Taxi
 			small &nbsp animation of crawdad data
 
-	#info-panel
-		.row
-			.col-md-3
-				h3 Time
-					span#info-time.large
-			.col-md-3
-			.col-md-3
-			.col-md-3
-				button.button#start-button Start
-				button.button#stop-button Stop
+	.row#data-panel
+		.col-sm-5
+			div
+				| &nbsp start time
+			div
+				select.selectpicker(data-width='25%')#start-month
+					option(value=1) one
+					option(value=2) two
+					option(value=3) three
+				select.selectpicker(data-width='15%')#start-day
+					option(value=1) one
+					option(value=2) two
+					option(value=3) three
+				select.selectpicker(data-width='60%')#start-time
+		.col-sm-2
+			div
+				| month day
+			div
+				span#info-time.large 
+		.col-sm-5
+			div
+				| &nbsp end time
+			div
+				select.selectpicker(data-width='25%')#end-month
+					option(value=1) one
+					option(value=2) two
+					option(value=3) three
+				select.selectpicker(data-width='15%')#end-day
+					option(value=1) one
+					option(value=2) two
+					option(value=3) three
+				select.selectpicker(data-width='60%')#end-time
 
+
+	.row#info-panel
+		.col-md-3.col1
+			| placeholder
+		.col-md-3.col2
+			| placeholder
+		.col-md-3.col3
+			| placeholder
+		.col-md-3.col5
+			button.button#start-button Start
+			button.button#stop-button(style='display:none') Stop
+			button.button#reset-button Reset
 	#taxi-anim
+
+
 	script.
 
-		
-
 		// parameters to control the animation
-		var frameLimit = 400;
+		var frameLimit = 200;
 		var frame = 1;
 		
-		var framePause = 800;
-		var frameTransition = framePause-50;
+		var framePause = 1200;
+		var frameTransition = framePause-100;
 
-		var proceed = true;
+		var proceed = false;
 
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
@@ -92,20 +106,17 @@ block content
 
 		// start the chain
 		d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
-		var refreshID = setInterval(function(){
-			console.log(frame);
-			if ( proceed == true)
-			{
-				_updatePoints(overlay)
+		
+		function mainLoop()
+		{
+			_updatePoints(overlay);
 
-				startTime.setSeconds(startTime.getSeconds()+15);
-				endTime.setSeconds(endTime.getSeconds()+15);
-				d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
-				if (++frame > frameLimit)
-					clearInterval(refreshID);
-			}
-		},framePause);
-			
+			startTime.setSeconds(startTime.getSeconds()+15);
+			endTime.setSeconds(endTime.getSeconds()+15);
+			d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
+			if (++frame > frameLimit)
+				clearInterval(animationID);
+		}
 
 
 		function _updatePoints(overlay){
