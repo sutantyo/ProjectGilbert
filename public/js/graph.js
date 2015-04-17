@@ -49,33 +49,78 @@
 
 		function _graph_buildGraph()
 		{
-			var queue = [];
-			var set = [];
-
+			// container for nodes that have been inspected (i.e. some other node's neighbour),
+			// so that we don't make the same graph twice 
+			var inspected_nodes = [];
 			for (var i = 0; i < _graph_nodes.length; i++)
 			{
+				// container for nodes of the current graph that we're building
 				var current_graph = [];
 
-				if (set.indexOf(_graph_nodes[i]) == -1)
+				// if node has not been inspected
+				if (inspected_nodes.indexOf(_graph_nodes[i]) == -1)
 				{
-					queue.push(_graph_nodes[i]);
-					set.push(_graph_nodes[i]);	
+					var queue = [];
+					// add the first node into the graph
 					current_graph.push(_graph_nodes[i]);
+
+					// start the BFS traversal
+					queue.push(_graph_nodes[i]);
+					inspected_nodes.push(_graph_nodes[i]);	
 					while (queue.length > 0)
 					{
 						var q_head = queue.shift();
 						q_head.neighbours.forEach(
 							function(neighbour){
-								if (set.indexOf(neighbour) == -1)
+								if (inspected_nodes.indexOf(neighbour) == -1)
 								{
-									queue.push(neighbour);
-									set.push(neighbour);
 									current_graph.push(neighbour);
+									queue.push(neighbour);
+									inspected_nodes.push(neighbour);
 								}
 							});
 						if (queue.length == 0)
 						{
+							// if queue is empty, q_head is the last node, so push the
+							// graph into the array of graphs
 							graphs.push(current_graph);
+
+							// find the diameter of the graph:
+							// from q_head, the last node, do another BFS
+							// ... we re-use the queue (since it is now empty), 
+							// ... but need a new array to mark the inspected nodes
+							if (current_graph.length == 1)	
+								current_graph.diameter = 0;
+							else
+							{
+								var diameter_inspected_nodes = [];
+								var diameter = -1;
+							
+								queue.push([q_head]);
+								diameter_inspected_nodes.push(q_head);
+								
+								while(queue.length > 0)
+								{
+									diameter++;
+									var next_group = [];
+
+									q_head = queue.shift();
+									q_head.forEach(function(node){
+											node.neighbours.forEach(function(neighbour){
+												if (diameter_inspected_nodes.indexOf(neighbour) == -1)
+												{
+													next_group.push(neighbour);
+													diameter_inspected_nodes.push(neighbour);
+												}
+											});
+									});
+									if (next_group.length > 0)
+										queue.push(next_group);
+
+									if (queue.length == 0)
+										current_graph.diameter = diameter;
+								}	
+							}
 						}
 					}
 				}

@@ -58,21 +58,21 @@ append content
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 200;
+		var frameLimit = 5;
 		var frame = 1;
 		
-		var framePause = 1200;
+		var framePause = 2000;
 		var frameTransition = framePause-100;
 
 		var proceed = false;
 
-		// parameters specific to Taxi SF dataset:
-		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
-		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
-		// ... if the timestamp is GMT, then subtract 8 for SF
+		// parameters specific to Taxi Roma dataset:
+		// ... the earliest timestamp is 1391212800, 
+		// ... the latest timestamp is 1393804798,
 
-		var startTime = new Date(2000,1,1,12,0,0,0);
-		var endTime = new Date(2000,1,1,12,0,15,0);
+		var time_increments = 15;
+		var startTime = 1391212800;
+		var endTime = startTime + time_increments;
 
 		// boundary points for our svg
 		var boundary_points = [ {id : 'NW', x: 42.23961, y: 12.04925},
@@ -111,22 +111,31 @@ append content
 		{
 			_updatePoints(overlay);
 
-			startTime.setSeconds(startTime.getSeconds()+15);
-			endTime.setSeconds(endTime.getSeconds()+15);
-			d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
-			if (++frame > frameLimit)
-				clearInterval(animationID);
+			startTime = endTime+1;
+			endTime = endTime + time_increments;
+			currentTime = new Date(endTime*1000);
+			d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
 		}
 
 
+		/*
+		function _gatherData()
+		{
+
+			var graph = new TaxiGraph();
+		
+			//d3.json ....
+			{
+				var _duplicate_check = [];
+				data.forEach(
+			}
+
+		}
+		*/
+
+
 		function _updatePoints(overlay){
-			d3.json('/taxi_roma/time?start=' + startTime.toTimeString().substr(0,2) + 'h' +
-																									 startTime.toTimeString().substr(3,2) + 'm' +
-																									 startTime.toTimeString().substr(6,2) + 's&end=' +
-																									 endTime.toTimeString().substr(0,2) + 'h' + 
-																									 endTime.toTimeString().substr(3,2) + 'm' + 
-																									 endTime.toTimeString().substr(6,2) + 's', 
-				function(error,data)
+			d3.json('/dataset/taxi_roma_epoch/time?start=' + startTime + '&end=' + endTime, function(error,data)
 				{
 					//console.log('Frame: ' + frame + ' start time: ' + startTime);
 					_graph_nodes.length = 0;
@@ -147,17 +156,20 @@ append content
 					_graph_findNeighbours();
 
 					graphs.length = 0;
+					var a = performance.now();
 					_graph_buildGraph();
+					var b = performance.now();
+					console.log('Buildgraph: ' + (b-a));
 
-					/*
+
 					graphs.forEach(function(graph,i){
 						var list_of_node = '';
 						graph.forEach(function(node){
 							list_of_node = list_of_node + ' ' + node.id;
 						});
-						//console.log('Graph ' + i + ':' + list_of_node);
+						console.log('Graph ' + i + ':' + list_of_node);
+						console.log('... diameter: ' + graph.diameter);
 					});
-					*/
 					
 					graphs.forEach(function(graph,i){
 						var graph_size = graph.length;

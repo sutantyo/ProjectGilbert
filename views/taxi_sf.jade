@@ -1,14 +1,7 @@
-extend layout
+extend layout_taxi
+append additional_header
 
-block additional_header
-
-	script(src='/js/overlay.js', charset='utf-8')
-	script(src='/js/taxiscript.js', charset='utf-8')
-	script(src='/js/graph.js', charset='utf-8')
-	link(rel='stylesheet', href='/css/taxi.css')
-	
-
-block content
+append content
 
 
 
@@ -43,9 +36,14 @@ block content
 		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
 		// ... if the timestamp is GMT, then subtract 8 for SF
 
-		var time_increments = 45;
-		var startTime = 1211018404;
-		var endTime = startTime + time_increments;
+		var min_time = 1211018404;
+		var max_time = 1213089934;
+		var chunk_size = 3600;
+		var data_collection_interval = 60;
+
+		var time_increments = 60;
+		var start_time = min_time;
+		var end_time = start_time + time_increments;
 
 		// boundary points for our svg
 		var boundary_points = [ {id : 'NW', x: 37.99999, y: -122.56000},
@@ -78,23 +76,92 @@ block content
 		overlay.setTransitTime(frameTransition);
 		// start the chain
 
-		var currentTime = new Date(endTime*1000);
+		var currentTime = new Date(end_time*1000);
 		d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
+
+		gatherData();
 
 		function mainLoop()
 		{
 			_updatePoints(overlay);
 
-			startTime = endTime+1;
-			endTime = endTime + time_increments;
-			currentTime = new Date(endTime*1000);
+			start_time = end_time+1;
+			end_time = end_time + time_increments;
+			currentTime = new Date(end_time*1000);
 			d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
-			if (++frame > frameLimit)
-				clearInterval(refreshID);
 		}	
 
+		function gatherData()
+		{
+			d3.json('/dataset/taxi_sf_epoch/time?start=' + start_time + '&end=' + (start_time + chunk_size), function(error,data)
+			{
+				if (error) return console.log('Error getting json data: ' + error);
+			
+				var perfA = performance.now();	
+				console.log(data.length);
+				var loc_pointer = 0;	
+				for (var i = 0; i < 60; i++)
+				{
+
+					var current_batch = [];
+					for (var j = 0; j < data.length; j++)
+					{
+						if ( data[j].time < (start_time + (i+1) * 60) )
+							current_batch.push(data[j]);
+						else
+						{
+							data.splice(0,j);
+							break;
+						}
+					}
+
+					_graph_nodes.length = 0;
+
+					var _duplicate_check = [];
+					current_batch.forEach(function(datum){
+						if (_duplicate_check.indexOf(datum.id) == -1)	
+						{
+								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
+								_duplicate_check.push(datum.id);
+						}
+					});
+
+
+					_graph_findNeighbours();
+					graphs.length = 0;
+					_graph_buildGraph();
+
+					var neighbours_count = [];
+					var total_neighbours = 0;
+					_graph_nodes.forEach(function(node){
+						neighbours_count.push(node.neighbours.length);
+						total_neighbours = total_neighbours + node.neighbours.length
+					});
+					//console.log("Number of nodes: " + _graph_nodes.length);
+					//console.log("...average neighbours: " + total_neighbours/_graph_nodes.length);
+
+					//console.log("Number of components: " + graphs.length);
+					var diameters = [];
+					var total_diameter = 0;
+					var component_sizes = [];
+					var total_component_sizes = 0;
+					graphs.forEach(function(graph){
+						diameters.push(graph.diameter);
+						total_diameter = total_diameter + graph.diameter;
+						component_sizes.push(graph.length);
+						total_component_sizes =  total_component_sizes + graph.length;
+					});
+					//console.log("Average diameter: " + total_diameter / graphs.length);
+					//console.log("Average size " + total_component_sizes / graphs.length);
+
+				}
+				var perfB = performance.now();
+				console.log("Time taken: " + (perfB-perfA));
+			});
+		}
+
 		function _updatePoints(overlay){
-			d3.json('/taxi_sf/time?start=' + startTime + '&end=' + endTime, function(error,data)
+			d3.json('/dataset/taxi_sf_epoch/time?start=' + start_time + '&end=' + end_time, function(error,data)
 				{
 					//console.log('Frame: ' + frame + ' start time: ' + startTime);
 					_graph_nodes.length = 0;
@@ -104,29 +171,23 @@ block content
 					data.forEach(function(datum){
 						if (_duplicate_check.indexOf(datum.id) == -1)	
 						{
-							//if (datum.id == 352 || datum.id == 234 || datum.id == 37 || datum.id == 310 || datum.id == 322)
-							{
-							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
 								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
 								_duplicate_check.push(datum.id);
-							}
 						}
 					});
 					_graph_findNeighbours();
 
 					graphs.length = 0;
-
 					_graph_buildGraph();
 
-					/*
 					graphs.forEach(function(graph,i){
 						var list_of_node = '';
 						graph.forEach(function(node){
 							list_of_node = list_of_node + ' ' + node.id;
 						});
 						//console.log('Graph ' + i + ':' + list_of_node);
+						//console.log('... diameter: ' + graph.diameter);
 					});
-					*/
 					
 					graphs.forEach(function(graph,i){
 						var graph_size = graph.length;
@@ -154,94 +215,6 @@ block content
 					overlay.update();
 			}); // end d3.json
 		};
-
-
-
-		// Find the distance (in metres) between two coordinates on the map
-		function convertLLtoM(lat1, lon1, lat2, lon2) {
-			var R = 6378.137
-			var a = 
-				 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 + 
-				 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-				 (1 - Math.cos((lon2 - lon1) * Math.PI / 180))/2;
-
-			return 1000 * R * 2 * Math.asin(Math.sqrt(a));
-		}
-
-		// Convert a distance in metres into change in longitudinal coordinate
-		// 
-		// We are doing something very lazy here: at the equator, 1 longitudinal degree
-		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
-		function convertMtoLL(m) {
-			return (m * 0.00000893831118);
-		}
-
-
-		// Graph-related codes
-
-		var graphs = [];
-
-		function _graph_findNeighbours()
-		{
-			for (var i = 0; i < _graph_nodes.length; i++)
-			{
-				for (var j = 0; j < _graph_nodes.length; j++)
-				{
-					if (i != j)
-					{
-						if (convertLLtoM(_graph_nodes[i].x,_graph_nodes[i].y,_graph_nodes[j].x,_graph_nodes[j].y) < coverageRadius)
-						{
-							if (_graph_nodes[i].neighbours.indexOf(_graph_nodes[j]) == -1)
-							{
-								_graph_nodes[i].neighbours.push(_graph_nodes[j]);
-								_graph_edges.push({id: _graph_nodes[i].id + '-' + _graph_nodes[j].id,
-																	 origin: _graph_nodes[i], 
-																	 dest: _graph_nodes[j],
-																	 path: [{x: _graph_nodes[i].x, y: _graph_nodes[i].y},
-																	 				{x: _graph_nodes[j].x, y: _graph_nodes[j].y}]});
-							}
-						}
-					}
-				}
-			}
-		}
-
-		function _graph_buildGraph()
-		{
-			var queue = [];
-			var set = [];
-
-			for (var i = 0; i < _graph_nodes.length; i++)
-			{
-				var current_graph = [];
-
-				if (set.indexOf(_graph_nodes[i]) == -1)
-				{
-					queue.push(_graph_nodes[i]);
-					set.push(_graph_nodes[i]);	
-					current_graph.push(_graph_nodes[i]);
-					while (queue.length > 0)
-					{
-						var q_head = queue.shift();
-						q_head.neighbours.forEach(
-							function(neighbour){
-								if (set.indexOf(neighbour) == -1)
-								{
-									queue.push(neighbour);
-									set.push(neighbour);
-									current_graph.push(neighbour);
-								}
-							});
-						if (queue.length == 0)
-						{
-							graphs.push(current_graph);
-						}
-					}
-				}
-			}
-		}
-
-
 
 
 

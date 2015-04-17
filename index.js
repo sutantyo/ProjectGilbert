@@ -67,6 +67,7 @@ app.get('/maptest', function(req,res){
 });
 
 // GET data according to time
+/*
 app.get('/taxi_roma/time', function(req,res){
 	var startTime;
 	var endTime;
@@ -111,7 +112,6 @@ app.get('/taxi_sf/time', function(req,res){
 	{
 		var startTime = req.query.start;
 		var endTime = req.query.end;
-		console.log('calling to get coordinates');
 		pg.connect(connectionString, function(err,client,done){
 			if(err)
 				return console.error('error fetching client from pool', err);
@@ -131,4 +131,40 @@ app.get('/taxi_sf/time', function(req,res){
 	else
 		res.status(400).send("Incorrect GET parameters");
 });
+*/
 
+var available_dataset = ['taxi_roma_epoch','taxi_sf_epoch'] 
+
+app.get('/dataset/:dataset_name/time', function(req,res){
+
+	if (available_dataset.indexOf(req.params.dataset_name) == -1)
+		res.status(404).send("Dataset not available");
+	else
+	{
+		if (req.query.start && req.query.end)
+		{
+			var start_time = parseInt(req.query.start);
+			var end_time = parseInt(req.query.end);
+			var table_name = req.params.dataset_name;
+			pg.connect(connectionString, function(err,client,done){
+				if(err)
+					return console.error('error fetching client from pool', err);
+
+				console.log("SELECT id, x, y, time FROM " + table_name + " WHERE time >= '" + start_time + "' AND time < '" + end_time +"'");
+				client.query("SELECT id, x, y, time FROM " + table_name + " WHERE time >= '" + start_time + "' AND time < '" + end_time +"'", function (err,result){
+					done();
+					if (err){
+						return console.error('error running query',err);
+						res.status(500).send('Error running query');
+					}
+					var json_response = JSON.stringify(result.rows);
+					res.writeHead(200,{'content-type':'application/json','content-length':Buffer.byteLength(json_response)});
+					res.end(json_response);
+					client.end();
+				});
+			});
+		}
+		else
+			res.status(400).send("Incorrect GET parameters");
+	}
+});

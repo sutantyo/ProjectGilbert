@@ -48,6 +48,16 @@
 				var taxis = _main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
 				taxis.each(update_circle_position2);
 
+				var labels = _main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
+				labels
+					.attr({
+						'x': function(d){return find_pixel_position_of(d).x - offset.x + 7},
+						'y': function(d){return find_pixel_position_of(d).y - offset.y + 5},
+						'fill':'black'
+					})
+					.text(function(d){ return d.id })
+					.style('fill-opacity',1)
+
 			};
 
 			this.update = function(){
@@ -61,7 +71,6 @@
 						'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
 						})					
 				
-				console.log(transitTime);
 				var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 				connections.transition()
 					.duration(transitTime*0.8)
@@ -90,8 +99,7 @@
 					.transition().duration(transitTime*0.25).style('fill-opacity',1e-6)
 					.remove();
 
-				/*
-				var labels = _main_svg.selectAll('text').data(nodes,function(d){return d.id});
+				var labels = _main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
 				labels.transition()
 					.duration(transitTime)
 					.attr({
@@ -118,7 +126,6 @@
 					.duration(transitTime)
 					.style('fill-opacity',1e-6)
 					.remove();
-				*/
 
 					
 
