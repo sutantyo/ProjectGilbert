@@ -1,5 +1,13 @@
+function Graph(){
+	this.nodes = [];
+	this.edges = [];
+	this.components = [];
+}
+
+
+
 		// Find the distance (in metres) between two coordinates on the map
-		function convertLLtoM(lat1, lon1, lat2, lon2) {
+Set.convertLLtoM = function(lat1, lon1, lat2, lon2) {
 			var R = 6378.137
 			var a = 
 				 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 + 
@@ -7,15 +15,16 @@
 				 (1 - Math.cos((lon2 - lon1) * Math.PI / 180))/2;
 
 			return 1000 * R * 2 * Math.asin(Math.sqrt(a));
-		}
+}
 
 		// Convert a distance in metres into change in longitudinal coordinate
 		// 
 		// We are doing something very lazy here: at the equator, 1 longitudinal degree
 		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
-		function convertMtoLL(m) {
-			return (m * 0.00000893831118);
-		}
+function convertMtoLL(m) {
+	return (m * 0.00000893831118);
+}
+
 
 
 		// Graph-related codes

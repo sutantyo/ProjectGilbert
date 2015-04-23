@@ -5,8 +5,13 @@ html,body,#taxi-anim {
 	margin: 0;
 	padding: 0 20px 0 30px;
 }
-.button{
+
+.button-half-width{
 	width:50%;
+}
+
+.button-full-width{
+	width:100%;
 }
 
 select {
@@ -44,4 +49,8 @@ select {
     -moz-appearance: none;
     text-indent: 1px;
     text-overflow: '';
+}
+
+
+#chart-info-panel{
 }
