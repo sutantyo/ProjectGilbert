@@ -13,15 +13,9 @@ append content
 			div
 				| &nbsp start time
 			div
-				select.selectpicker(data-width='25%')#start-month
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='15%')#start-day
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='60%')#start-time
+				select.selectpicker.start-month(data-width='35%')#map-input-start-month
+				select.selectpicker.start-day(data-width='30%')#map-input-start-day
+				select.selectpicker.start-time(data-width='35%')#map-input-start-time
 		.col-sm-2
 			div
 				| month day
@@ -31,16 +25,9 @@ append content
 			div
 				| &nbsp end time
 			div
-				select.selectpicker(data-width='25%')#end-month
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='15%')#end-day
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='60%')#end-time
-
+				select.selectpicker.end-month(data-width='35%')#map-input-end-month
+				select.selectpicker.end-day(data-width='30%')#map-input-end-day
+				select.selectpicker.end-time(data-width='35%')#map-input-end-time
 
 	.row#info-panel
 		.col-md-3.col1
@@ -50,9 +37,10 @@ append content
 		.col-md-3.col3
 			| placeholder
 		.col-md-3.col5
-			button.button-half-width#start-button Start
-			button.button-half-width#stop-button(style='display:none') Stop
-			button.button-half-width#reset-button Reset
+			button.button-full-width#map-generate-button Generate
+			button.button-half-width#map-start-button(style='display:none') Start 
+			button.button-half-width#map-stop-button(style='display:none')  Stop
+			button.button-half-width#map-reset-button(style='display:none') Reset
 	#taxi-anim
 
 	.page-header
@@ -66,17 +54,17 @@ append content
 					.col-sm-2
 						| Start
 					.col-sm-10.col1
-						select.selectpicker(data-width='35%')#chart-input-start-month
-						select.selectpicker(data-width='30%')#chart-input-start-day
-						select.selectpicker(data-width='35%')#chart-input-start-time
+						select.selectpicker.start-month(data-width='35%')#chart-input-start-month
+						select.selectpicker.start-day(data-width='30%')#chart-input-start-day
+						select.selectpicker.start-time(data-width='35%')#chart-input-start-time
 			div
 				.row
 					.col-sm-2
 						| End
 					.col-sm-10.col1
-						select.selectpicker(data-width='35%')#chart-input-end-month
-						select.selectpicker(data-width='30%')#chart-input-end-day
-						select.selectpicker(data-width='35%')#chart-input-end-time
+						select.selectpicker.end-month(data-width='35%')#chart-input-end-month
+						select.selectpicker.end-day(data-width='30%')#chart-input-end-day
+						select.selectpicker.end-time(data-width='35%')#chart-input-end-time
 		.col-md-6.col1
 			div
 				.row
@@ -103,17 +91,13 @@ append content
 				.row
 
 		.col-md-2
-			button.button-full-width#generate-button Generate
+			button.button-full-width#chart-generate-button Generate
 
 	#taxi-data
 	script.
 
 		// parameters to control the animation
-		var frameLimit = 100;
-		var frame = 1;
-				
-		var framePause = 2000;
-		var frameTransition = framePause-50;
+
 
 
 		// parameters specific to Taxi SF dataset:
@@ -123,18 +107,13 @@ append content
 
 		var min_time = 1211018404;
 		var max_time = 1213089934;
+
 		var chunk_size = 14400;
 		var data_collection_interval = 60;
 
 		var time_increments = 60;
-		var start_time = min_time;
-		var end_time = start_time + time_increments;
 
 		// boundary points for our svg
-		var boundary_points = [ {id : 'NW', x: 37.99999, y: -122.56000},
-											  		{id : 'NE', x: 37.99999, y: -122.00000},
-											  		{id : 'SE', x: 37.20000, y: -122.00000},
-											  		{id : 'SW', x: 37.20000, y: -122.56000} ];
 
 		var available_year = 2008;
 		var available_dates = [ {month: 'May',  min_date: '17', max_date: '31'},
@@ -143,14 +122,15 @@ append content
 													  '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
 														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
 		var recommended_intervals = [ 60 ];
-		// parameters for the graph
-		var coverageRadius = 500;
 
-		// container (and lookup table) for the data, i.e. GPS location of taxis
-		var _graph_nodes = [];
-		var _graph_edges = [];
+		var chart_div = d3.select('#taxi-data');
+		var chart_svg = chart_div.append('svg')
+			.attr('height',400)
+			.attr('width',1800)
 
-		// create a map 
+		// Taxi animation
+		//
+		// Create a map centered in San Fransisco
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
 			zoom: 15,
 			center: new google.maps.LatLng(37.7833,-122.4167),
@@ -159,474 +139,32 @@ append content
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
-		// extend Google Maps' OverlayView class and create a new OverlayView object
-		OverlayView.prototype = new google.maps.OverlayView();
-		var overlay = new OverlayView();
+		//var currentTime = new Date(end_time*1000);
+		//d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
 
-		// bind the overlay to the map (thus calling overlay.onAdd)
-		overlay.setMap(map);
-		overlay.setTransitTime(frameTransition);
-		// start the chain
+		var overlay;
+		var animationID;
 
-		var currentTime = new Date(end_time*1000);
-		d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
-
-
-
-		function mainLoop()
+		function generate_taxi_animation(start_time,end_time)
 		{
-			_updatePoints(overlay);
-
-			start_time = end_time+1;
-			end_time = end_time + time_increments;
-			currentTime = new Date(end_time*1000);
-			d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
-		}	
-
-		var chart_div = d3.select('#taxi-data');
-		var chart_svg = chart_div.append('svg')
-			.attr('height',400)
-			.attr('width',1800)
-
-		//function chartDrawer(start_time, end_time, type, interval, radius)
-		function chartDrawer(start_time, end_time, type, interval)
-		{
-
-			console.log('start time: ' + start_time);
-			console.log('end time: ' + end_time);
-			var chunk_size = 14400;
-			var marker_start = 0;
-			var marker_movement = chunk_size / interval;
-			var current_time = start_time;
-			
-			d3.json('/dataset/taxi_sf_epoch/time?start=' + current_time + '&end=' + (current_time + chunk_size), function(error,data)
-			{
-				if (error) return console.log('Error getting json data: ' + error);
-
-				var _data = data;
-
-				async.whilst( 
-					function(){ return current_time <= end_time; },
-					function(callback) {
-						async.parallel([
-							function(callback){ 
-								console.log('...processing data from ' + current_time);
-								processData(_data, type, marker_start, marker_movement,current_time,interval)
-								marker_start = marker_start + marker_movement;
-								callback(null,'one');
-							},
-							function(callback){ 
-								current_time = current_time + chunk_size;
-								if (current_time <= end_time)
-								{
-									d3.json('/dataset/taxi_sf_epoch/time?start=' + current_time + '&end=' + (current_time + chunk_size), function(error,data)
-									{
-										_data = data;
-										console.log('...obtained data from ' + current_time);
-										callback(null,'two');
-									});
-								}
-							}
-							], 
-							function(){
-								callback();
-							}
-						);
-					},
-					function(err){
-						if (err)
-							console.log(err);
-					}
-				);
-			//gatherData();
-
-			}); // end first json request
-		}// end chartDrawer
-
-		function processData(data, type, marker_start, marker_movement,start_time,interval)
-		{
-				var perfA = performance.now();
-
-				console.log("Called processData with params: " + marker_start + ', ' + type + ', ' + marker_movement + ', data-length: ' + data.length);
-				var chart_data = [];
-				// Now we loop through the json data to process it in a smaller interval, determined by the
-				// variable 'data_collection_interval'. 
-				// For example if the interval is 60 seconds, then we collect 60 seconds worth of data, 
-				// create the graphs, and then record its properties. 
-
-				for (var i = 0; i < marker_movement; i++)
-				//for (var i = 0; i < 1; i++)
-				{
-					// collect data within data_collection_interval and store it in current_batch
-					var current_batch = [];
-					for (var j = 0; j < data.length; j++)
-					{
-						if ( data[j].time < (start_time + (i+1) * interval) )
-							current_batch.push(data[j]);
-						else
-						{
-							// if data[j] has exceeded the timestamp, remove all the previous entries from data
-							data.splice(0,j);
-							break;
-						}
-					}
-
-					// construct the graph, compute diameter, etc.
-					_graph_nodes.length = 0;
-					var _duplicate_check = [];
-					current_batch.forEach(function(datum){
-						if (_duplicate_check.indexOf(datum.id) == -1)	
-						{
-								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
-								_duplicate_check.push(datum.id);
-						}
-					});
-					_graph_findNeighbours();
-
-					graphs.length = 0;
-					_graph_buildGraph();
-
-					var _length = 0;
-
-					// Calculate the chart data
-					if (type === 'degree')
-					{	
-						console.log("Calculating chart data for degree");
-						var degrees = [];
-						_graph_nodes.forEach(function(node){
-							degrees.push(node.neighbours.length);
-						});
-						degrees.sort(function(a,b){return a-b});
-						_length = degrees.length;
-						chart_data.push({
-							 pctl25: degrees[Math.round(_length/4)],
-							 pctl50: degrees[Math.round(_length/2)],
-							 pctl75: degrees[Math.round(3 * _length/4)],
-							 pctl100: degrees[degrees.length-1]
-							});
-					}
-					else if (type === 'diameter')
-					{
-						console.log("Calculating chart data for diameter");
-						var diameters = [];
-						graphs.forEach(function(graph){
-							diameters.push(graph.diameter);
-						});
-
-						diameters.sort(function(a,b){return a-b});
-						_length = diameters.length;
-						chart_data.push({
-							 pctl25: diameters[Math.round(_length/4)],
-							 pctl50: diameters[Math.round(_length/2)],
-							 pctl75: diameters[Math.round(3 * _length/4)],
-							 pctl100: diameters[diameters.length-1]
-							});
-					}
-					else if (type === 'component')
-					{
-						console.log("Calculating chart data for component");
-						var component_sizes = [];
-						graphs.forEach(function(graph){
-							component_sizes.push(Math.log(graph.length));
-						});
-
-						component_sizes.sort(function(a,b){return a-b});
-						_length = component_sizes.length;
-						chart_data.push({
-							 pctl25: component_sizes[Math.round(_length/4)],
-							 pctl50: component_sizes[Math.round(_length/2)],
-							 pctl75: component_sizes[Math.round(3 * _length/4)],
-							 pctl100: component_sizes[component_sizes.length-1]
-							});
-					}
-					else
-					{
-						console.error("ERROR IN TYPE SELECTION");
-					}
-				}
-				console.log('Done data gather: ' + performance.now());
-			
-				var pctl100max = 0;
-				chart_data.forEach(function(node){
-					if (node.pctl100 > pctl100max)
-						pctl100max = node.pctl100;
-				});
-				console.log('maximum value is ' + pctl100max);
-
-				console.log("Drawing the data");
-				drawChart(chart_svg.append('g'),400,marker_start,1,chart_data,100);
-
-				var perfB = performance.now();
-				console.log("Time taken: " + (perfB-perfA));
-		}		
-
-
-
-		function drawChart(svg, svg_height, start_marker, width, chart_data, max_height)
-		{
-			console.log('in drawChart');
-			console.log(start_marker);
-			var scale = d3.scale.linear()
-				.domain([0,max_height])
-				.rangeRound([0,svg_height])
-
-			var enterSelection =svg.selectAll('rect')
-				.data(chart_data).enter()
-				console.log(enterSelection);
-
-			enterSelection	
-				.append('rect')
-				.attr({
-					x:		function(d,i) { return start_marker + i * width},
-					y:		function(d) {return (svg_height - scale(d.pctl25))},
-					width: width,
-					height: function(d,i){return scale(d.pctl25)},
-					fill: '#7f3fed'
-				});
-			enterSelection	
-				.append('rect')
-				.attr({
-					x:		function(d,i) { return start_marker + i * width},
-					y:		function(d) {return (svg_height - scale(d.pctl50))},
-					width: width,
-					height: function(d,i){return scale(d.pctl50) - scale(d.pctl25)},
-					fill: '#7db8ec'
-				});
-			enterSelection
-				.append('rect')
-				.attr({
-					x:		function(d,i) { return start_marker + i * width},
-					y:		function(d) {return (svg_height - scale(d.pctl75))},
-					width: width,
-					height: function(d,i){return scale(d.pctl75)-scale(d.pctl50)},
-					fill: '#a77eed'
-				});
-			enterSelection
-				.append('rect')
-				.attr({
-					x:		function(d,i) { return start_marker + i * width},
-					y:		function(d) {return (svg_height - scale(d.pctl100))},
-					width: width,
-					height: function(d,i){return scale(d.pctl100)-scale(d.pctl75)},
-					fill: '#b0d0ec'
-				});
-		}
-
-		function _updatePoints(overlay){
-			d3.json('/dataset/taxi_sf_epoch/time?start=' + start_time + '&end=' + end_time, function(error,data)
-				{
-					//console.log('Frame: ' + frame + ' start time: ' + startTime);
-					_graph_nodes.length = 0;
-					_graph_edges.length = 0;
-
-					var _duplicate_check = [];
-					data.forEach(function(datum){
-						if (_duplicate_check.indexOf(datum.id) == -1)	
-						{
-								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
-								_duplicate_check.push(datum.id);
-						}
-					});
-					_graph_findNeighbours();
-
-					graphs.length = 0;
-					_graph_buildGraph();
-
-					graphs.forEach(function(graph,i){
-						var list_of_node = '';
-						graph.forEach(function(node){
-							list_of_node = list_of_node + ' ' + node.id;
-						});
-						//console.log('Graph ' + i + ':' + list_of_node);
-						//console.log('... diameter: ' + graph.diameter);
-					});
+			console.log("Adding overlay");
+			var boundaries = [ {id : 'NW', x: 37.99999, y: -122.56000},
+															{id : 'NE', x: 37.99999, y: -122.00000},
+															{id : 'SE', x: 37.20000, y: -122.00000},
+															{id : 'SW', x: 37.20000, y: -122.56000} ];
+			// Create a new overlay and bind it to our map
+			overlay = new OverlayView();
+			overlay.setMap(map);
+			var frameLimit = 100;
+			var frame = 1;
 					
-					graphs.forEach(function(graph,i){
-						var graph_size = graph.length;
-						var list_of_node = '';
-						graph.forEach(function(node){
-							list_of_node = list_of_node + ' ' + node.id;
-							if (graph_size > 15)
-								node.color = '#ff0000';
-							else if (graph_size > 13)
-								node.color = '#a81662';
-							else if (graph_size > 9)
-								node.color = '#c94b8c';
-							else if (graph_size > 5)
-								node.color = '#d870e6';
-							else if (graph_size > 1)
-								node.color = '#a370e6';
-							else
-								node.color = 'gray';
-						});
-						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
-					});
-					
-					overlay.nodes = _graph_nodes;
-					overlay.edges = _graph_edges;
-					overlay.update();
-			}); // end d3.json
-		};
+			var framePause = 2000;
+			var frameTransition = framePause-50;
+			// Set some parameters for the overlay animation (e.g. transition time), 
+			// these methods are in our inherited class
+			overlay.setTransitTime(frameTransition);
+			overlay.setBoundaries(boundaries);
 
-
-
-
-
-
-
-		function gatherData()
-		{
-
-			// Obtain the json data via chunks. For example, if chunk_size = 3600, i.e. one hour, then we will retrieve
-			// all the rows with timestamp between start_time and (start_time+3600).
-
-			d3.json('/dataset/taxi_sf_epoch/time?start=' + start_time + '&end=' + (start_time + chunk_size), function(error,data)
-			{
-				if (error) return console.log('Error getting json data: ' + error);
-			
-				var perfA = performance.now();	
-				console.log('Finished query: ' + perfA);
-				console.log(data.length);
-
-				var loc_pointer = 0;	
-
-				// Containers for storing the values we going to use to create the charts.
-				var chart_data_IQR_degree = [];
-				var chart_data_IQR_diameter = [];
-				var chart_data_IQR_component_size = [];
-
-
-				// Now we loop through the json data to process it in a smaller interval, determined by the
-				// variable 'data_collection_interval'. 
-				// For example if the interval is 60 seconds, then we collect 60 seconds worth of data, 
-				// create the graphs, and then record its properties. 
-
-				var loop_limit = chunk_size / data_collection_interval;
-				console.log('Should be 240: ' + loop_limit);
-
-				for (var i = 0; i < loop_limit; i++)
-				{
-					// collect data within data_collection_interval and store it in current_batch
-					var current_batch = [];
-					for (var j = 0; j < data.length; j++)
-					{
-						if ( data[j].time < (start_time + (i+1) * data_collection_interval) )
-							current_batch.push(data[j]);
-						else
-						{
-							// if data[j] has exceeded the timestamp, remove all the previous entries from data
-							data.splice(0,j);
-							break;
-						}
-					}
-
-
-
-					var graph = new Graph();
-					// construct the graph, compute diameter, etc.
-					_graph_nodes.length = 0;
-					var _duplicate_check = [];
-					current_batch.forEach(function(datum){
-						if (_duplicate_check.indexOf(datum.id) == -1)	
-						{
-								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
-								_duplicate_check.push(datum.id);
-						}
-					});
-					_graph_findNeighbours();
-
-					graphs.length = 0;
-					_graph_buildGraph();
-
-
-					var _length = 0;
-
-					// Calculate degrees of nodes
-					var degrees = [];
-					_graph_nodes.forEach(function(node){
-						degrees.push(node.neighbours.length);
-					});
-					degrees.sort(function(a,b){return a-b});
-					_length = degrees.length;
-					chart_data_IQR_degree.push({
-						 pctl25: degrees[Math.round(_length/4)],
-						 pctl50: degrees[Math.round(_length/2)],
-						 pctl75: degrees[Math.round(3 * _length/4)],
-						 pctl100: degrees[degrees.length-1]
-						});
-
-					// Calculate diameter values and component sizes
-
-					var diameters = [];
-					var component_sizes = [];
-					graphs.forEach(function(graph){
-						diameters.push(graph.diameter);
-						component_sizes.push(Math.log(graph.length));
-					});
-
-					diameters.sort(function(a,b){return a-b});
-					_length = diameters.length;
-					chart_data_IQR_diameter.push({
-						 pctl25: diameters[Math.round(_length/4)],
-						 pctl50: diameters[Math.round(_length/2)],
-						 pctl75: diameters[Math.round(3 * _length/4)],
-						 pctl100: diameters[diameters.length-1]
-						});
-
-					component_sizes.sort(function(a,b){return a-b});
-					_length = component_sizes.length;
-					chart_data_IQR_component_size.push({
-						 pctl25: component_sizes[Math.round(_length/4)],
-						 pctl50: component_sizes[Math.round(_length/2)],
-						 pctl75: component_sizes[Math.round(3 * _length/4)],
-						 pctl100: component_sizes[component_sizes.length-1]
-						});
-
-				}
-
-				console.log('Done data gather: ' + performance.now());
-				
-				var pctl100max = 0;
-				chart_data_IQR_degree.forEach(function(node){
-					if (node.pctl100 > pctl100max)
-						pctl100max = node.pctl100;
-				});
-				console.log('maximum degree is ' + pctl100max);
-
-				var chart_div = d3.select('#taxi-data');
-				var chart_svg = chart_div.append('svg')
-					.attr('height',400)
-					.attr('width',1800)
-				drawChart(chart_svg,400,0,1,chart_data_IQR_degree,150);
-				console.log(chart_data_IQR_degree);
-
-				pctl100max = 0;
-				chart_data_IQR_diameter.forEach(function(node){
-					if (node.pctl100 > pctl100max)
-						pctl100max = node.pctl100;
-				});
-				console.log('maximum diameter is ' + pctl100max);
-
-				var chart_svg2 = chart_div.append('svg')
-					.attr('height',400)
-					.attr('width',1800)
-				drawChart(chart_svg2,400,0,1,chart_data_IQR_diameter,50);
-
-				pctl100max = 0;
-				chart_data_IQR_component_size.forEach(function(node){
-					if (node.pctl100 > pctl100max)
-						pctl100max = node.pctl100;
-				});
-				console.log('maximum component size is ' + pctl100max);
-
-				var chart_svg3 = chart_div.append('svg')
-					.attr('height',400)
-					.attr('width',1800)
-				drawChart(chart_svg3,400,0,1,chart_data_IQR_component_size,300);
-
-				var perfB = performance.now();
-				console.log("Time taken: " + (perfB-perfA));
-			});
+			animation_loop(overlay,data,start_time,end_time);
 		}
-
 

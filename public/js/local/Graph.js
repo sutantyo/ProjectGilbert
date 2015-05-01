@@ -7,7 +7,7 @@ function Graph(){
 	this.neighbours_are_set = false;
 }
 
-// Find the distance (in metres) between two coordinates on the map
+		// Find the distance (in metres) between two coordinates on the map
 Graph.convertLLtoM = function(lat1, lon1, lat2, lon2) {
 	var R = 6378.137
 	var a = 
@@ -18,13 +18,15 @@ Graph.convertLLtoM = function(lat1, lon1, lat2, lon2) {
 	return 1000 * R * 2 * Math.asin(Math.sqrt(a));
 }
 
-// Convert a distance in metres into change in longitudinal coordinate
-// 
-// We are doing something very lazy here: at the equator, 1 longitudinal degree
-// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
+		// Convert a distance in metres into change in longitudinal coordinate
+		// 
+		// We are doing something very lazy here: at the equator, 1 longitudinal degree
+		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
 Graph.convertMtoLL = function(m){
 	return (m * 0.00000893831118);
 }
+
+
 
 // Given a graph, go through the set of nodes, and for each node, see if there 
 // are any other nodes located within the radius 

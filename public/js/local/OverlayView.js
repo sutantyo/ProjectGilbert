@@ -1,4 +1,7 @@
+// This class extends Google Maps' OverlayView class 
+OverlayView.prototype = new google.maps.OverlayView();
 
+// Some functions of the OverlayView class are redefined below
 function OverlayView(){
 
 	var _projection;
@@ -7,24 +10,27 @@ function OverlayView(){
 	var x_padding = 62;
 	var y_padding = -56;
 
+
 	var offset;
 	var transitTime;
 
-	this.test = function()
-	{
-		console.log(test);
-	};
-
 	this.nodes = [];
 	this.edges = [];
+	this.boundary_points = [];
+
+	this.test = function()
+	{
+		console.log(x_padding);
+	}
+
 	this.setTransitTime = function(input){
 		transitTime = input;
 	};
 
 	this.onAdd = function() {
+		console.log('onAdd');
 		_main_layer  = d3.select(this.getPanes().overlayLayer).append('div').attr('id','main-layer');
-		_main_svg	=	_main_layer.append('svg')
-			.style('position','absolute')
+		_main_svg	=	_main_layer.append('svg').style('position','absolute')
 	};
 
 	this.onRemove = function() {
