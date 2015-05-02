@@ -18,3 +18,9 @@ You also need to install a database, and for this I recommend installing [Postgr
 ```
 npm install
 ```
+
+Start the server with 
+```
+node index.js
+```
+and you should be able to access the app on http://localhost:5000/sanfransisco or http://localhost:5000/roma
