@@ -196,7 +196,7 @@ append content
 			});
 		}
 
-		function generate_taxi_chart(start_time,end_time)
+		function generate_taxi_chart(start_time,end_time,type)
 		{
 
 			var chart_div = d3.select('#taxi-data');
@@ -211,6 +211,7 @@ append content
 			chart_parameters = { chart_start_time : start_time,
 													 chart_end_time   : end_time,
 													 chart_interval   : interval,
+													 chart_type				: type,
 													 data_url					: data_url,
 													 data_chunk_size  : data_chunk_size,
 													 data_max_value   : 150,

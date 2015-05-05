@@ -40,7 +40,7 @@ app.get(['/'], function(req,res){
 	);
 });
 
-app.get(['/sanfransisco'], function(req,res){
+app.get(['/sanfrancisco'], function(req,res){
 	res.render('taxi_sf',
 		{ title : 'Project Gilbert' }
 	);

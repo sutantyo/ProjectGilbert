@@ -12,8 +12,12 @@ function TaxiChartDrawer(params){
 	this.next_set_of_data = [];
 
 	this.svg = params.svg;
+	this.type = params.chart_type;
 	this.max_value = 150;
 	this.svg_height = 400;
+
+	this.marker = 0;
+	this.stop_drawing = false;
 }
 
 TaxiChartDrawer.prototype.chart_drawing_loop = function()
@@ -47,14 +51,14 @@ TaxiChartDrawer.prototype.chart_drawing_loop = function()
 		});
 	}
 
-	var graph_promise = TaxiChartDrawer.build_graph(current_batch,_this.radius);	
+	var graph_promise = TaxiChartDrawer.build_graph(current_batch,_this.radius,_this.type);	
 	graph_promise.then(function(returned_graph){
 		//console.log(msg + ' up to ' + _this.current_time);
-		var draw_chart_promise = TaxiChartDrawer.draw_chart(returned_graph,svg);
-		animation_promise
+		var draw_chart_promise = _this.draw_chart(_this.marker++,_this.svg);
+		draw_chart_promise
 			.then(function(msg){
 				console.log(msg + ' up to ' + _this.current_time);
-				if (_this.stop_animation || _this.current_time >= _this.end_time)
+				if (_this.stop_drawing || _this.current_time >= _this.end_time)
 					return;
 				else
 				{
@@ -79,6 +83,9 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 	});
 	graph.find_neighbours(radius);
 
+	var chart_data = [];
+ 
+ 	console.log(type);
 	if (type === 'degree')	
 	{
 		var degrees = [];
@@ -152,50 +159,51 @@ TaxiChartDrawer.prototype.scalingFn = function()
 
 TaxiChartDrawer.prototype.draw_chart = function(draw_marker,chart_data)
 {
-	var enterSelection = svg.selectAll('rect').data(chart_data).enter();
 	var _this = this;
+	var enterSelection = _this.svg.selectAll('rect').data(chart_data).enter();
+	var width = 1;
 
 	enterSelection	
 		.append('rect')
 		.attr({
-			x:		function(d,i) { return start_marker + i * width},
-			y:		function(d) {return (svg_height - scalingFn(d.pctl25))},
+			x:		function(d,i) { return draw_marker + i * width},
+			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl25))},
 			width: width,
-			height: function(d,i){return scalingFn(d.pctl25)},
+			height: function(d,i){return _this.scalingFn(d.pctl25)},
 			fill: '#7f3fed'
 		});
 	enterSelection	
 		.append('rect')
 		.attr({
-			x:		function(d,i) { return start_marker + i * width},
-			y:		function(d) {return (svg_height - scalingFn(d.pctl50))},
+			x:		function(d,i) { return draw_marker + i * width},
+			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl50))},
 			width: width,
-			height: function(d,i){return scalingFn(d.pctl50) - scalingFn(d.pctl25)},
+			height: function(d,i){return _this.scalingFn(d.pctl50) - _this.scalingFn(d.pctl25)},
 			fill: '#7db8ec'
 		});
 	enterSelection
 		.append('rect')
 		.attr({
-			x:		function(d,i) { return start_marker + i * width},
-			y:		function(d) {return (svg_height - scalingFn(d.pctl75))},
+			x:		function(d,i) { return draw_marker + i * width},
+			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl75))},
 			width: width,
-			height: function(d,i){return scalingFn(d.pctl75)-scalingFn(d.pctl50)},
+			height: function(d,i){return _this.scalingFn(d.pctl75)-_this.scalingFn(d.pctl50)},
 			fill: '#a77eed'
 		});
 	enterSelection
 		.append('rect')
 		.attr({
-			x:		function(d,i) { return start_marker + i * width},
-			y:		function(d) {return (svg_height - scalingFn(d.pctl100))},
+			x:		function(d,i) { return draw_marker + i * width},
+			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl100))},
 			width: width,
-			height: function(d,i){return scalingFn(d.pctl100)-scalingFn(d.pctl75)},
+			height: function(d,i){return _this.scalingFn(d.pctl100)-_this.scalingFn(d.pctl75)},
 			fill: '#b0d0ec'
 		});
 	enterSelection
 		.append('rect')
 		.attr({
-			x:		function(d,i) { return start_marker + i * width},
-			y:		function(d) {return (svg_height - scalingFn(d.mean))},
+			x:		function(d,i) { return draw_marker + i * width},
+			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.mean))},
 			width: width,
 			height: function(d,i){return 1},
 			fill: 'red'
