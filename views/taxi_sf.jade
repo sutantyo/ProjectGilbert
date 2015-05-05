@@ -5,7 +5,7 @@ append content
 
 
 	.page-header
-		h2 Roma Taxi
+		h2 San Fransisco Taxi
 			small &nbsp animation of crawdad data
 
 	.row#data-panel
@@ -30,13 +30,13 @@ append content
 				select.selectpicker.end-time(data-width='35%')#map-input-end-time
 
 	.row#info-panel
-		.col-md-3.col1
+		.col-md-3
 			| placeholder
-		.col-md-3.col2
+		.col-md-3
 			| placeholder
-		.col-md-3.col3
+		.col-md-3
 			| placeholder
-		.col-md-3.col5
+		.col-md-3
 			button.button-full-width#map-generate-button Generate
 			button.button-half-width#map-start-button(style='display:none') Start 
 			button.button-half-width#map-stop-button(style='display:none')  Stop
@@ -53,7 +53,7 @@ append content
 				.row
 					.col-sm-2
 						| Start
-					.col-sm-10.col1
+					.col-sm-10
 						select.selectpicker.start-month(data-width='35%')#chart-input-start-month
 						select.selectpicker.start-day(data-width='30%')#chart-input-start-day
 						select.selectpicker.start-time(data-width='35%')#chart-input-start-time
@@ -61,11 +61,11 @@ append content
 				.row
 					.col-sm-2
 						| End
-					.col-sm-10.col1
+					.col-sm-10
 						select.selectpicker.end-month(data-width='35%')#chart-input-end-month
 						select.selectpicker.end-day(data-width='30%')#chart-input-end-day
 						select.selectpicker.end-time(data-width='35%')#chart-input-end-time
-		.col-md-6.col1
+		.col-md-6
 			div
 				.row
 					.col-sm-2
@@ -95,10 +95,7 @@ append content
 
 	#taxi-data
 	script.
-
 		// parameters to control the animation
-
-
 
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
@@ -123,10 +120,6 @@ append content
 														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
 		var recommended_intervals = [ 60 ];
 
-		var chart_div = d3.select('#taxi-data');
-		var chart_svg = chart_div.append('svg')
-			.attr('height',400)
-			.attr('width',1800)
 
 		// Taxi animation
 		//
@@ -143,11 +136,9 @@ append content
 		//d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
 
 		var overlay;
-		var animationID;
 
 		function generate_taxi_animation(start_time,end_time)
 		{
-			console.log("Adding overlay");
 			var boundaries = [ {id : 'NW', x: 37.99999, y: -122.56000},
 															{id : 'NE', x: 37.99999, y: -122.00000},
 															{id : 'SE', x: 37.20000, y: -122.00000},
@@ -155,16 +146,103 @@ append content
 			// Create a new overlay and bind it to our map
 			overlay = new OverlayView();
 			overlay.setMap(map);
-			var frameLimit = 100;
-			var frame = 1;
-					
-			var framePause = 2000;
-			var frameTransition = framePause-50;
+
+
+			var frame_step = 60;	
+			var frame_transition = 900;	
+
+			var data_url = '/dataset/taxi_sf_epoch/';
+			var data_chunk_size = 3600;
+
 			// Set some parameters for the overlay animation (e.g. transition time), 
 			// these methods are in our inherited class
-			overlay.setTransitTime(frameTransition);
+			overlay.setTransitionTime(frame_transition);
 			overlay.setBoundaries(boundaries);
 
-			animation_loop(overlay,data,start_time,end_time);
+			animation_parameters = { animation_start_time : start_time, 
+															 animation_end_time		: end_time,
+															 animation_step				: frame_step,
+															 data_url							: data_url,
+															 data_chunk						: data_chunk_size,
+															 radius								: 500
+														};	
+			var anim = new TaxiAnimation(overlay, animation_parameters);
+			//anim.animation_loop();
+
+
+			return new Promise (function(resolve,reject){
+				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
+					if (error) reject('Error getting initial data' + error);
+					else
+					{
+						anim.active_data = data;
+						if (start_time+data_chunk_size <= end_time)
+						{
+							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
+								if (error) reject('Error getting initial data' + error);
+								else
+								{
+									anim.next_set_of_data = data;
+									resolve(anim);
+								}
+							});
+						}
+						else
+						{
+							resolve(anim);
+						}
+					}
+				});
+			});
 		}
 
+		function generate_taxi_chart(start_time,end_time)
+		{
+
+			var chart_div = d3.select('#taxi-data');
+			var chart_svg = chart_div.append('svg')
+				.attr('height',400)
+				.attr('width',1800)
+
+			var interval = 60;
+			var data_url = '/dataset/taxi_sf_epoch/';
+			var data_chunk_size = 3600;
+
+			chart_parameters = { chart_start_time : start_time,
+													 chart_end_time   : end_time,
+													 chart_interval   : interval,
+													 data_url					: data_url,
+													 data_chunk_size  : data_chunk_size,
+													 data_max_value   : 150,
+													 svg 							: chart_svg,
+													 svg_height				: 400,
+												 };
+
+			var chart_drawer = new TaxiChartDrawer(chart_parameters);
+
+			return new Promise (function(resolve,reject){
+				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
+					if (error) reject('Error getting initial data' + error);
+					else
+					{
+						chart_drawer.active_data = data;
+						if (start_time+data_chunk_size <= end_time)
+						{
+							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
+								if (error) reject('Error getting initial data' + error);
+								else
+								{
+									chart_drawer.next_set_of_data = data;
+									resolve(chart_drawer);
+								}
+							});
+						}
+						else
+						{
+							resolve(chart_drawer);
+						}
+					}
+				});
+			});	
+
+		}

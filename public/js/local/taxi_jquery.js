@@ -1,29 +1,8 @@
 $(document).ready(function(){
 
-	$('#map-generate-button').click(function(){
-		$('#map-generate-button').hide();
-		$('#map-start-button').show();
-		$('#map-reset-button').show();
-	});
+	
+	var animation_controller;
 
-	$('#map-start-button').click(function(){
-		$('#map-start-button').hide();
-		$('#map-stop-button').show();
-		//animationID = setInterval(function(){mainLoop();},framePause)
-	});
-
-	$('#map-stop-button').click(function(){
-		$('#map-stop-button').hide();
-		$('#map-start-button').show();
-		//window.clearInterval(animationID);
-	});
-
-	$('#map-reset-button').click(function(){
-		$('#map-generate-button').show();
-		$('#map-start-button').hide();
-		$('#map-reset-button').hide();
-	});
-		
 
 
 	// Chart related jquery 
@@ -50,7 +29,7 @@ $(document).ready(function(){
 	});
 	$('.start-time').val('10:00');
 	$('.start-time').selectpicker('render');
-	$('.end-time').val('19:00');
+	$('.end-time').val('11:00');
 	$('.end-time').selectpicker('render');
 
 
@@ -114,7 +93,6 @@ $(document).ready(function(){
 		});
 	});
 
-
 	$('#map-generate-button').click(function(){
 		var UTC_start_time = ($('#map-input-start-day').val() + ' ' + $('#map-input-start-month').val() + ' ' + available_year
 											+ ' ' + $('#map-input-start-time').val() + ' UTC');
@@ -132,7 +110,43 @@ $(document).ready(function(){
 		{
 			console.log("Generating map animation from " + UTC_start_time + ' to ' + UTC_end_time);
 			generate_taxi_animation(UTC_start_time,UTC_end_time)
+				.then(function(returned_value){
+					animation_controller = returned_value;
+					$('#map-generate-button').hide();
+					$('#map-start-button').show();
+					$('#map-reset-button').show();
+					},function(){
+						alert('Error retrieving data');		
+				});
 		}
+
+	$('#map-start-button').click(function(){
+		if (animation_controller)
+		{
+			$('#map-start-button').hide();
+			$('#map-stop-button').show();
+			animation_controller.animation_loop();
+		}
+		else 
+		{
+			alert('Error: animation not ready');
+		}
+		//animationID = setInterval(function(){mainLoop();},framePause)
+	});
+
+	$('#map-stop-button').click(function(){
+		$('#map-stop-button').hide();
+		$('#map-start-button').show();
+		//window.clearInterval(animationID);
+	});
+
+	$('#map-reset-button').click(function(){
+		$('#map-generate-button').show();
+		$('#map-start-button').hide();
+		$('#map-reset-button').hide();
+	});
+		
+
 
 	});
 
@@ -152,11 +166,15 @@ $(document).ready(function(){
 		else
 		{
 			console.log("Generating chart data from " + UTC_start_time + ' to ' + UTC_end_time);
-			chart_div.select('svg').remove();
-			chart_svg = chart_div.append('svg')
-					.attr('height',400)
-					.attr('width',1800)
-			chartDrawer(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000, $('#chart-input-type').val(), 60,$('#chart-input-radius').val(),1);
+			//chart_div.select('svg').remove();
+			//chart_svg = chart_div.append('svg')
+			//.attr('height',400)
+			//.attr('width',1800)
+			//chartDrawer(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000, $('#chart-input-type').val(), 60,$('#chart-input-radius').val(),1);
+			generate_taxi_chart(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000)
+				.then(function(returned_value){
+					returned_value.chart_drawing_loop();
+				});
 		}
 		/*
 			Call draw from 

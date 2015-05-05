@@ -12,7 +12,7 @@ function OverlayView(){
 
 
 	var offset;
-	var transitTime;
+	var transition_time;
 
 	this.nodes = [];
 	this.edges = [];
@@ -23,8 +23,12 @@ function OverlayView(){
 		console.log(x_padding);
 	}
 
-	this.setTransitTime = function(input){
-		transitTime = input;
+	this.setTransitionTime = function(input){
+		transition_time = input;
+	};
+
+	this.setBoundaries = function(input){
+		boundary_points = input;
 	};
 
 	this.onAdd = function() {
@@ -82,7 +86,7 @@ function OverlayView(){
 		
 		var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 		connections.transition()
-			.duration(transitTime*0.8)
+			.duration(transition_time*0.8)
 			.attr('d',function(d){return lineFunction(d.path)})
 			.style('stroke',function(d){return d.origin.color})
 		connections.enter().append('path')
@@ -92,25 +96,25 @@ function OverlayView(){
 			.style('stroke-width','0pt')
 			.style('stroke',function(d){return d.origin.color})
 			.transition()
-				.delay(transitTime*0.8)
-				.duration(transitTime*0.2)
+				.delay(transition_time*0.8)
+				.duration(transition_time*0.2)
 				.style('stroke-width','0.5pt')
 		connections.exit()
-			.transition().duration(transitTime*0.25).style('stroke-width','0pt')
+			.transition().duration(transition_time*0.25).style('stroke-width','0pt')
 			.remove();
 
 		var taxis = _main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
 		taxis.each(update_circle_position);
 		taxis.enter().append('circle').each(set_circle_position)
-			.style('fill-opacity',1e-6).transition().duration(transitTime*0.8).style('fill-opacity',1);
+			.style('fill-opacity',1e-6).transition().duration(transition_time*0.8).style('fill-opacity',1);
 
 		taxis.exit()
-			.transition().duration(transitTime*0.25).style('fill-opacity',1e-6)
+			.transition().duration(transition_time*0.25).style('fill-opacity',1e-6)
 			.remove();
 
 		var labels = _main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
 		labels.transition()
-			.duration(transitTime)
+			.duration(transition_time)
 			.attr({
 				'x': function(d){
 					return find_pixel_position_of(d).x - offset.x + 7},
@@ -128,11 +132,11 @@ function OverlayView(){
 			.text(function(d){ return d.id })
 			.style('fill-opacity',1e-6)
 			.transition()
-				.duration(transitTime*0.5)
+				.duration(transition_time*0.5)
 				.style('fill-opacity',1)
 		labels.exit()
 			.transition()
-			.duration(transitTime)
+			.duration(transition_time)
 			.style('fill-opacity',1e-6)
 			.remove();
 
@@ -160,7 +164,7 @@ function OverlayView(){
 	function update_circle_position(d){
 		var position = find_pixel_position_of(d);
 		return d3.select(this)
-			.transition().duration(transitTime*0.8)
+			.transition().duration(transition_time*0.8)
 			.style('fill-opacity',1)
 			.attr({
 				'cx': function(d){return position.x - offset.x},

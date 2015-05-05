@@ -4,6 +4,8 @@ var url = require('url');
 var bodyParser = require('body-parser');
 var pg = require('pg');
 
+var db_password = require('./private/db_password')
+
 var app = express();
 
 app.use(bodyParser.json());
@@ -21,11 +23,19 @@ app.set('view engine', 'jade');
 // Database matters:
 
 // Local database
-var connectionString = 'postgres://daniels:macquarie@localhost/crawdad';
-//:var connectionString = process.env.DATABASE_URL;
+var connection_string = db_password.connection_string;
+
+// For heroku
+//var connection_string = process.env.DATABASE_URL;
 
 app.get(['/roma'], function(req,res){
 	res.render('taxi_roma',
+		{ title : 'Project Gilbert' }
+	);
+});
+
+app.get(['/'], function(req,res){
+	res.render('taxi_sf',
 		{ title : 'Project Gilbert' }
 	);
 });
@@ -46,7 +56,7 @@ app.listen(app.get('port'), function() {
 
 app.get('/taxi_roma/all', function(req,res){
 	console.log('calling to get all taxi id');
-	pg.connect(connectionString, function(err,client,done){
+	pg.connect(connection_string, function(err,client,done){
 		if(err)
 			return console.error('error fetching client from pool',err);
 		client.query("SELECT DISTINCT id FROM taxi_roma", function(err,result){
@@ -66,75 +76,8 @@ app.get('/maptest', function(req,res){
 	res.render('maptest');
 });
 
-// GET data according to time
-/*
-app.get('/taxi_roma/time', function(req,res){
-	var startTime;
-	var endTime;
-	if (req.query.start && req.query.end)
-	{
-		start_hour = req.query.start.substr(0,2);
-		start_min  = req.query.start.substr(3,2);
-		start_sec  = req.query.start.substr(6,2);
-		startTime = new Date(2000,1,1,req.query.start.substr(0,2),
-																		  req.query.start.substr(3,2),
-																		  req.query.start.substr(6,2),0);
-		startTime = startTime.toTimeString().substr(0,8);
-		endTime   = new Date(2000,1,1,req.query.end.substr(0,2),
-																		  req.query.end.substr(3,2),
-																		  req.query.end.substr(6,2),0);
-		endTime = endTime.toTimeString().substr(0,8);
-	}
-	else
-		res.status(400).send("Incorrect GET parameters");
-
-	console.log('calling to get coordinates');
-	pg.connect(connectionString, function(err,client,done){
-		if(err)
-			return console.error('error fetching client from pool', err);
-		client.query("SELECT id, x, y FROM taxi_roma WHERE time >= '" + startTime + "' AND time < '" + endTime +"'", function (err,result){
-			done();
-			if (err){
-				return console.error('error running query',err);
-				res.status(500).send('Error running query');
-			}
-			var json_response = JSON.stringify(result.rows);
-			res.writeHead(200,{'content-type':'application/json','content-length':Buffer.byteLength(json_response)});
-			res.end(json_response);
-			client.end();
-		});
-	});
-});
-
-
-app.get('/taxi_sf/time', function(req,res){
-	if (req.query.start && req.query.end)
-	{
-		var startTime = req.query.start;
-		var endTime = req.query.end;
-		pg.connect(connectionString, function(err,client,done){
-			if(err)
-				return console.error('error fetching client from pool', err);
-			client.query("SELECT id, x, y FROM taxi_sf_epoch WHERE time >= '" + startTime + "' AND time < '" + endTime +"'", function (err,result){
-				done();
-				if (err){
-					return console.error('error running query',err);
-					res.status(500).send('Error running query');
-				}
-				var json_response = JSON.stringify(result.rows);
-				res.writeHead(200,{'content-type':'application/json','content-length':Buffer.byteLength(json_response)});
-				res.end(json_response);
-				client.end();
-			});
-		});
-	}
-	else
-		res.status(400).send("Incorrect GET parameters");
-});
-*/
 
 var available_dataset = ['taxi_roma_epoch','taxi_sf_epoch'] 
-
 app.get('/dataset/:dataset_name/time', function(req,res){
 
 	if (available_dataset.indexOf(req.params.dataset_name) == -1)
@@ -146,7 +89,7 @@ app.get('/dataset/:dataset_name/time', function(req,res){
 			var start_time = parseInt(req.query.start);
 			var end_time = parseInt(req.query.end);
 			var table_name = req.params.dataset_name;
-			pg.connect(connectionString, function(err,client,done){
+			pg.connect(connection_string, function(err,client,done){
 				if(err)
 					return console.error('error fetching client from pool', err);
 
