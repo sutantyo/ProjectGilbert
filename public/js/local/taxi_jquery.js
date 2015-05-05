@@ -171,6 +171,7 @@ $(document).ready(function(){
 			//.attr('height',400)
 			//.attr('width',1800)
 			//chartDrawer(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000, $('#chart-input-type').val(), 60,$('#chart-input-radius').val(),1);
+			d3.select('#taxi-data').select('svg').remove();
 			generate_taxi_chart(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000, $('#chart-input-type').val())
 				.then(function(returned_value){
 					returned_value.chart_drawing_loop();

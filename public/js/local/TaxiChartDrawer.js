@@ -95,7 +95,7 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 	var chart_data = [];
 	var _length = 0;
 
-	if (type === 'degree')	
+	if (type === 'degrees')	
 	{
 		var degrees = [];
 		var degrees_sum = 0;
@@ -112,7 +112,7 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 			 mean: degrees_sum/degrees.length
 			});
 	}
-	else if (type === 'diameter')
+	else if (type === 'diameters')
 	{
 		graph.build_components();
 		var diameters = [];
@@ -128,7 +128,7 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 			 pctl100: diameters[diameters.length-1]
 			});
 	}
-	else if (type === 'component')
+	else if (type === 'components')
 	{
 		graph.build_components();
 		var component_sizes = [];

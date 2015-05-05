@@ -6,6 +6,17 @@ html,body,#taxi-anim {
 	padding: 0 20px 0 30px;
 }
 
+#taxi-data{
+	height: 440px;
+  width: 100%;
+	overflow: scroll;
+}
+
+footer{
+	margin-top: 160px;
+	margin-bottom: 20px;
+}
+
 .button-half-width{
 	width:50%;
 }
