@@ -29,13 +29,14 @@ append content
 
 	.row.no-gutter#info-panel
 		.col-md-2
+			.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
+				| Interval
+			.col-md-6.col-sm-2.col-xs-6
+				select.selectpicker(data-width='100%')#map-input-interval
+		.col-md-2
 			.col-md-6.col-sm-2.col-xs-6.input-title
 				| Radius
 			input.col-md-6.col-sm-2.col-xs-6#map-input-radius(type=text, value = 500)
-		.col-md-2
-			.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
-				| Interval
-			input.col-md-6.col-sm-2.col-xs-6#map-input-interval(type=text, value = 500)
 		.col-md-2
 			.button.btn.btn-default.button-full-width#map-label-button Label
 		.col-md-2
@@ -43,7 +44,7 @@ append content
 		.col-md-4
 			.button.btn.btn-default.button-full-width#map-generate-button Generate
 			.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
-			.button.btn.btn-default.button-half-width#map-stop-button(style='display:none')  Stop
+			.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
 			.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
 	#taxi-anim
 
@@ -125,7 +126,7 @@ append content
 		var available_times = [	'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00',
 													  '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
 														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
-		var recommended_intervals = [ 60 ];
+		var recommended_intervals = [ 45, 60 ];
 
 
 		var boundaries = [ {id : 'NW', x: 37.99999, y: -122.56000},
@@ -149,18 +150,17 @@ append content
 
 		var overlay;
 
-		function generate_taxi_animation(start_time,end_time)
+		function generate_taxi_animation(start_time,end_time,radius,interval)
 		{
 			// Create a new overlay and bind it to our map
 			overlay = new OverlayView();
 			overlay.setMap(map);
 
-
-			var frame_step = 60;	
-			var frame_transition = 1000;	
-
 			var data_url = '/dataset/taxi_sf_epoch/';
 			var data_chunk_size = 3600;
+
+			var frame_transition = 1000;	
+
 
 			// Set some parameters for the overlay animation (e.g. transition time), 
 			// these methods are in our inherited class
@@ -169,10 +169,10 @@ append content
 
 			animation_parameters = { animation_start_time : start_time, 
 															 animation_end_time		: end_time,
-															 animation_step				: frame_step,
+															 animation_step				: parseInt(interval),
 															 data_url							: data_url,
 															 data_chunk						: data_chunk_size,
-															 radius								: 500
+															 radius								: radius
 														};	
 			var anim = new TaxiAnimation(overlay, animation_parameters);
 			//anim.animation_loop();

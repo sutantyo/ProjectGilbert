@@ -15,13 +15,18 @@ $(document).ready(function(){
 
 	available_times.forEach(function(period){
 		$('.start-time').append('<option value = "' + period + '">' + period + '</option>'); 
-		
 		$('.end-time').append('<option value = "' + period + '">' + period + '</option>'); 
 	});
 	$('.start-time').val('10:00');
 	$('.start-time').selectpicker('render');
 	$('.end-time').val('11:00');
 	$('.end-time').selectpicker('render');
+
+	recommended_intervals.forEach(function(interval){
+		$('#chart-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
+		$('#map-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
+	});
+
 	/* END OF BRITTLENESS (I hope) */
 
 	$('#map-input-start-month').change(function(){
@@ -129,6 +134,7 @@ $(document).ready(function(){
 		UTC_end_time = new Date(UTC_end_time);
 		UTC_end_time = UTC_end_time.getTime()/1000;
 
+
 		coverageRadius = $('#map-input-radius').val();	
 		if (UTC_end_time <= UTC_start_time)
 		{
@@ -137,25 +143,23 @@ $(document).ready(function(){
 		}
 		else
 		{
+			animation_controller = null;
 			console.log("Generating map animation from " + UTC_start_time + ' to ' + UTC_end_time);
-			generate_taxi_animation(UTC_start_time,UTC_end_time)
+			console.log(animation_controller);
+			generate_taxi_animation(UTC_start_time,UTC_end_time,$('#map-input-radius').val(),$('#map-input-interval').val())
 				.then(function(returned_value){
-					animation_controller = returned_value;
-					animation_controller.stop_animation = true;
-					animation_controller.animation_loop();
-					/*
-					animation_controller.animation_loop().then(function(){
-						animation_controller.overlay.add_listeners_on_circles();
-					});
-					*/
-
-					$('#map-generate-button').hide();
-					$('#map-start-button').show();
-					$('#map-reset-button').show();
+						console.log('1st then');
+						animation_controller = returned_value;
+						animation_controller.stop_animation = true;
+						$('#map-generate-button').hide();
+						$('#map-start-button').show();
+						$('#map-reset-button').show();
+						return animation_controller.animation_loop();
 					},function(){
 						alert('Error retrieving data');		
 				})
 				.then(function(){
+						alert('2nd then');
 						animation_controller.add_listeners_to_circles();
 				});	
 		}
@@ -164,6 +168,7 @@ $(document).ready(function(){
 		if (animation_controller)
 		{
 			$('#map-start-button').hide();
+			$('#map-reset-button').hide();
 			$('#map-stop-button').show();
 			animation_controller.stop_animation = false;
 			animation_controller.animation_loop();
@@ -177,9 +182,24 @@ $(document).ready(function(){
 	$('#map-stop-button').click(function(){
 		if (animation_controller)
 		{
-			$('#map-stop-button').hide();
-			$('#map-start-button').show();
-			animation_controller.stop_animation = true;
+			if (animation_controller.current_time < animation_controller.end_time)
+			{
+				$('#map-stop-button').hide();
+				$('#map-start-button').show();
+				$('#map-reset-button').show();
+				animation_controller.stop_animation = true;
+			}
+			else
+			{
+				animation_controller.overlay.setMap(null);
+				$('#map-generate-button').show();
+				$('#map-stop-button').hide();
+				$('.map-input').removeAttr('disabled','disabled');
+			}
+		}
+		else
+		{
+			alert('It seems that you ran into a bug, please reload the page');
 		}
 
 	});
@@ -190,6 +210,7 @@ $(document).ready(function(){
 		$('#map-generate-button').show();
 		$('#map-start-button').hide();
 		$('#map-reset-button').hide();
+		$('#map-stop-button').hide();
 	});
 		
 

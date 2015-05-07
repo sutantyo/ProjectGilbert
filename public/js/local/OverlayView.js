@@ -66,7 +66,7 @@ function OverlayView(){
 			.attr({
 				'x': function(d){return find_pixel_position_of(d).x - offset.x + 7},
 				'y': function(d){return find_pixel_position_of(d).y - offset.y + 5},
-				'fill':'black'
+				'fill': function(d){ return d.color}
 			})
 			.text(function(d){ return d.id })
 			.style('fill-opacity',1)
@@ -130,7 +130,7 @@ function OverlayView(){
 					'x': function(d){
 						return find_pixel_position_of(d).x - offset.x + 7},
 					'y': function(d){return find_pixel_position_of(d).y - offset.y + 5},
-					'fill':'black'
+					'fill': function(d){return d.color}
 				})
 				.text(function(d){ return d.id })
 				.style('fill-opacity',1)
@@ -138,7 +138,7 @@ function OverlayView(){
 				.attr({
 					'x': function(d){return find_pixel_position_of(d).x - offset.x + 7},
 					'y': function(d){return find_pixel_position_of(d).y - offset.y + 5},
-					'fill':'black'
+					'fill': function(d){return d.color}
 				})
 				.text(function(d){ return d.id })
 				.style('fill-opacity',1e-6)

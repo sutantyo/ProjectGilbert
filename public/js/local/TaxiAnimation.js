@@ -29,6 +29,7 @@ TaxiAnimation.prototype.add_listeners_to_circles = function()
 		console.log('adding listeners');
 		_this.overlay.main_svg.selectAll('circle').style('cursor','crosshair')
 			.on('click',function(d){
+				console.log('clicked');
 				if (_this.infected[d.id])
 				{
 					_this.infected[d.id] = false;
@@ -51,7 +52,6 @@ TaxiAnimation.prototype.add_listeners_to_circles = function()
 TaxiAnimation.prototype.animation_loop = function()
 {
 	var _this = this;
-
 
 	var current_batch = [];
 	for (var i = 0; i < _this.active_data.length; i++)
@@ -81,18 +81,18 @@ TaxiAnimation.prototype.animation_loop = function()
 
 
 		_this.current_data = current_batch;
-		var graph_promise = _this.build_graph();
-		graph_promise.then(function(returned_graph){
+
+	//setTimeout(function(){
+		_this.build_graph().then(function(returned_graph){
+			console.log('... finished graph');
 			var ct = new Date(_this.current_time*1000); 
-			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-7));
-			//console.log(msg + ' up to ' + _this.current_time);
+			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-4));
 			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
 			animation_promise
 				.then(function(msg){
-					console.log(msg + ' up to ' + _this.current_time);
 					if (_this.stop_animation || _this.current_time >= _this.end_time)
 					{
-						console.log('stopped');
+						console.log(msg);
 						return new Promise( function(resolve,reject){
 							resolve('Stopped animation');
 						});
@@ -103,17 +103,18 @@ TaxiAnimation.prototype.animation_loop = function()
 					}
 				});
 		});
+	//},0);
 };
 
 
 TaxiAnimation.prototype.build_graph = function()
 {
+	console.log('calling build graph');
 	var _this = this;
 	var a = performance.now();
 	var graph = new Graph();
 	var _duplicate_check = [];
 
-	console.log(_this.infected);
 	_this.current_data.forEach(function(datum){
 		if (_duplicate_check[datum.id] !== 1)
 		{
@@ -162,21 +163,23 @@ TaxiAnimation.prototype.build_graph = function()
 			});
 	});
 
-	console.log('build time: ' + (performance.now()-a));
 	return new Promise( function(resolve,reject){
+		console.log('build time: ' + (performance.now()-a));
 		resolve(graph);
 	});
 }
 
 TaxiAnimation.draw_graph = function(graph,overlay)
 {
+	console.log('calling draw graph');
 	var a = performance.now();
 	overlay.nodes = graph.nodes;
 	overlay.edges = graph.edges;
 	overlay.update();
-	console.log('draw time: ' + (performance.now()-a));
 	return new Promise( function(resolve,reject){
-		setTimeout(function(){resolve()},1000);
+		setTimeout(function(){
+			console.log('draw time: ' + (performance.now()-a));
+			resolve('...finished drawing')},1000);
 	});
 }
 
