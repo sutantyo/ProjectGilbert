@@ -6,7 +6,7 @@ function OverlayView(){
 
 	var _projection;
 	var _main_layer;
-	var _main_svg;
+	this.main_svg
 
 	var x_padding = 62;
 	var y_padding = -56;
@@ -30,26 +30,11 @@ function OverlayView(){
 	this.setBoundaries = function(input){
 		boundary_points = input;
 	};
-	this.add_listeners_on_circles = function(){
-		if (_main_svg)
-		{
-			console.log('adding listeners');
-			_main_svg.selectAll('circle').style('cursor','crosshair')
-				.on('click',function(d){
-					console.log(d.id);
-				});
-		}
-	}
-
-	this.remove_listeners_on_circles = function(){
-		if (_main_svg)
-			console.log("Should remove listeners");
-	}
 
 	this.onAdd = function() {
 		console.log('onAdd');
 		_main_layer  = d3.select(this.getPanes().overlayMouseTarget).append('div').attr('id','main-layer');
-		_main_svg	=	_main_layer.append('svg').style('position','absolute')
+		this.main_svg	=	_main_layer.append('svg').style('position','absolute')
 	};
 
 	this.onRemove = function() {
@@ -62,21 +47,21 @@ function OverlayView(){
 		var _NW_point = find_pixel_position_of(boundary_points[0]);
 		offset = {x : _NW_point.x, y : _NW_point.y};
 
-		_main_svg
+		this.main_svg
 			.style('left', offset.x + 'px')
 			.style('top', offset.y + 'px')
 			.attr({
 				'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
 				'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
 				})					
-		var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
+		var connections = this.main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 		connections
 			.attr('d',function(d){return lineFunction(d.path)})
 			.style('stroke',function(d){return d.origin.color})
-		var taxis = _main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
+		var taxis = this.main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
 		taxis.each(update_circle_position2);
 
-		var labels = _main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
+		var labels = this.main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
 		labels
 			.attr({
 				'x': function(d){return find_pixel_position_of(d).x - offset.x + 7},
@@ -91,7 +76,7 @@ function OverlayView(){
 	this.update = function(){
 		console.log("called update");
 
-		_main_svg
+		this.main_svg
 			.style('left', offset.x + 'px')
 			.style('top', offset.y + 'px')
 			.attr({
@@ -101,7 +86,7 @@ function OverlayView(){
 	
 		if (this.show_edges)	
 		{
-			var connections = _main_svg.selectAll('path').data(this.edges,function(d){return d.id});
+			var connections = this.main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 			connections
 				.transition()
 				.duration(transition_time*0.8)
@@ -123,10 +108,10 @@ function OverlayView(){
 		}
 		else
 		{
-			_main_svg.selectAll('path').remove();
+			this.main_svg.selectAll('path').remove();
 		}
 
-		var taxis = _main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
+		var taxis = this.main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
 		taxis.each(update_circle_position);
 		taxis.enter().append('circle').each(set_circle_position)
 			.style('fill-opacity',1e-6).transition().duration(transition_time*0.8).style('fill-opacity',1)
@@ -138,7 +123,7 @@ function OverlayView(){
 	
 		if (this.show_labels)
 		{
-			var labels = _main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
+			var labels = this.main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
 			labels.transition()
 				.duration(transition_time)
 				.attr({
@@ -168,7 +153,7 @@ function OverlayView(){
 		}
 		else
 		{
-			_main_svg.selectAll('text').remove();
+			this.main_svg.selectAll('text').remove();
 		}
 
 			

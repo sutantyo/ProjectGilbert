@@ -16,6 +16,35 @@ function TaxiAnimation(overlay, params){
 	this.active_data = []; 
 	this.next_set_of_data = [];
 
+	this.current_data = [];
+
+	this.infected = [];
+}
+
+TaxiAnimation.prototype.add_listeners_to_circles = function()
+{
+	var _this = this;
+	if (_this.overlay.main_svg)
+	{
+		console.log('adding listeners');
+		_this.overlay.main_svg.selectAll('circle').style('cursor','crosshair')
+			.on('click',function(d){
+				if (_this.infected[d.id])
+				{
+					_this.infected[d.id] = false;
+					_this.build_graph().then(function(returned_graph){
+						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+					});
+				}
+				else
+				{
+					_this.infected[d.id] = true;
+					_this.build_graph().then(function(returned_graph){
+						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+					});
+				}
+			});
+	}
 }
 
 
@@ -51,7 +80,8 @@ TaxiAnimation.prototype.animation_loop = function()
 	}
 
 
-		var graph_promise = TaxiAnimation.build_graph(current_batch,_this.radius);	
+		_this.current_data = current_batch;
+		var graph_promise = _this.build_graph();
 		graph_promise.then(function(returned_graph){
 			var ct = new Date(_this.current_time*1000); 
 			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-7));
@@ -76,25 +106,37 @@ TaxiAnimation.prototype.animation_loop = function()
 };
 
 
-TaxiAnimation.build_graph = function(data,radius)
+TaxiAnimation.prototype.build_graph = function()
 {
+	var _this = this;
 	var a = performance.now();
 	var graph = new Graph();
 	var _duplicate_check = [];
 
-	data.forEach(function(datum){
+	console.log(_this.infected);
+	_this.current_data.forEach(function(datum){
 		if (_duplicate_check[datum.id] !== 1)
 		{
-				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
-				_duplicate_check[datum.id] = 1;
+			_duplicate_check[datum.id] = 1;
+			if (_this.infected[datum.id] === true)		
+			{
+				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: true});
+				console.log('set a node to infected');
+			}
+			else
+				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: false});
 		}
 	});
-	graph.find_neighbours_and_edges(radius);
+	graph.find_neighbours_and_edges(_this.radius);
 	graph.build_components();
 
-
 	graph.components.forEach(function(component){
-		if (component.length > 15)
+		if (component.infected)
+			component.forEach(function(node){
+				node.color = '#8de854';
+				_this.infected[node.id] = true;
+			});
+		else if (component.length > 15)
 			component.forEach(function(node){
 				node.color = '#ff0000';
 			});

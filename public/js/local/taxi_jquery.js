@@ -156,7 +156,7 @@ $(document).ready(function(){
 						alert('Error retrieving data');		
 				})
 				.then(function(){
-						animation_controller.overlay.add_listeners_on_circles();
+						animation_controller.add_listeners_to_circles();
 				});	
 		}
 

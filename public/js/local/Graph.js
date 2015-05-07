@@ -3,7 +3,6 @@ function Graph(){
 	this.components = [];
 	this.edges = [];
 
-	this.infected = [];
 	this.neighbours_are_set = false;
 }
 
@@ -88,6 +87,11 @@ Graph.prototype.build_components = function()
 		{
 			// ... add it to the current_component
 			current_component.push(this.nodes[i]);
+			if (this.nodes[i].infected)
+			{
+				console.log('found infected node');
+				current_component.infected = true;
+			}
 
 			// start the BFS traversal
 			var queue = [];
@@ -100,6 +104,11 @@ Graph.prototype.build_components = function()
 					function(neighbour){
 						if (inspected_nodes.indexOf(neighbour) == -1)
 						{
+							if (neighbour.infected)
+							{
+								console.log('found infected neighbour');
+								current_component.infected = true;
+							}
 							current_component.push(neighbour);
 							queue.push(neighbour);
 							inspected_nodes.push(neighbour);
@@ -109,6 +118,7 @@ Graph.prototype.build_components = function()
 				{
 					// if queue is empty, q_head is the last node, so push the
 					// component into the array of components
+
 					this.components.push(current_component);
 
 					// find the diameter of the component
