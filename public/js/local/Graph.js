@@ -1,9 +1,9 @@
 function Graph(){
 	this.nodes = [];
 	this.components = [];
-
 	this.edges = [];
 
+	this.infected = [];
 	this.neighbours_are_set = false;
 }
 
@@ -56,11 +56,14 @@ Graph.prototype.find_neighbours_and_edges = function(radius)
 						if (this.nodes[i].neighbours.indexOf(this.nodes[j]) == -1)
 						{
 							this.nodes[i].neighbours.push(this.nodes[j]);
-							this.edges.push({id: this.nodes[i].id + '-' + this.nodes[j].id,
-																 origin: this.nodes[i], 
-																 dest: this.nodes[j],
-																 path: [{x: this.nodes[i].x, y: this.nodes[i].y},
-																				{x: this.nodes[j].x, y: this.nodes[j].y}]});
+							if (this.nodes[i].id < this.nodes[j].id)
+							{
+								this.edges.push({id: this.nodes[i].id + '-' + this.nodes[j].id,
+																	 origin: this.nodes[i], 
+																	 dest: this.nodes[j],
+																	 path: [{x: this.nodes[i].x, y: this.nodes[i].y},
+																					{x: this.nodes[j].x, y: this.nodes[j].y}]});
+							}
 						}
 				}
 		}// end for j

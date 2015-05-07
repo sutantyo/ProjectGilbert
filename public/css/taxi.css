@@ -1,9 +1,17 @@
+.no-gutter > [class*='col-'] {
+    padding-right:0;
+    padding-left:0;
+}
 
 html,body,#taxi-anim {
 	width: 100%;
 	height: 90%;
 	margin: 0;
 	padding: 0 20px 0 30px;
+}
+
+#taxi-anim{
+	margin-top: 12px;
 }
 
 #taxi-data{
@@ -15,6 +23,14 @@ html,body,#taxi-anim {
 footer{
 	margin-top: 160px;
 	margin-bottom: 20px;
+}
+
+.input-title{
+	text-align: center;
+	font-size: 120%;
+}
+.clicked{
+	background-color: #dcd6ed;
 }
 
 .button-half-width{

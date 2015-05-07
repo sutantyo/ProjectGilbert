@@ -3,55 +3,59 @@ append additional_header
 
 append content
 
-
 	.page-header
 		h2 San Francisco Taxi
 			small &nbsp animation of crawdad data
 
-	.row#data-panel
-		.col-sm-5
+	.row.no-gutter#data-panel
+		.col-sm-4
+			div.input-title
+				| Start Time
 			div
-				| &nbsp start time
+				select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
+				select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
+				select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
+		.col-sm-4
+			div.input-title
+				| Current Time 
+			div.input-title#map-info-time
+		.col-sm-4
+			div.input-title
+				| End Time
 			div
-				select.selectpicker.start-month(data-width='35%')#map-input-start-month
-				select.selectpicker.start-day(data-width='30%')#map-input-start-day
-				select.selectpicker.start-time(data-width='35%')#map-input-start-time
-		.col-sm-2
-			div
-				| month day
-			div
-				span#info-time.large 
-		.col-sm-5
-			div
-				| &nbsp end time
-			div
-				select.selectpicker.end-month(data-width='35%')#map-input-end-month
-				select.selectpicker.end-day(data-width='30%')#map-input-end-day
-				select.selectpicker.end-time(data-width='35%')#map-input-end-time
+				select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
+				select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
+				select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
 
-	.row#info-panel
-		.col-md-3
-			| placeholder
-		.col-md-3
-			| placeholder
-		.col-md-3
-			| placeholder
-		.col-md-3
-			button.button-full-width#map-generate-button Generate
-			button.button-half-width#map-start-button(style='display:none') Start 
-			button.button-half-width#map-stop-button(style='display:none')  Stop
-			button.button-half-width#map-reset-button(style='display:none') Reset
+	.row.no-gutter#info-panel
+		.col-md-2
+			.col-md-6.col-sm-2.col-xs-6.input-title
+				| Radius
+			input.col-md-6.col-sm-2.col-xs-6#map-input-radius(type=text, value = 500)
+		.col-md-2
+			.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
+				| Interval
+			input.col-md-6.col-sm-2.col-xs-6#map-input-interval(type=text, value = 500)
+		.col-md-2
+			.button.btn.btn-default.button-full-width#map-label-button Label
+		.col-md-2
+			.button.clicked.btn.btn-default.button-full-width#map-edge-button Edges
+		.col-md-4
+			.button.btn.btn-default.button-full-width#map-generate-button Generate
+			.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
+			.button.btn.btn-default.button-half-width#map-stop-button(style='display:none')  Stop
+			.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
 	#taxi-anim
 
 	.page-header
 		h2 Data charts
 			small &nbsp 
 	
-	.row#chart-info-panel
+	.row.no-gutter#chart-info-panel
 		.col-md-4
 			div
 				.row
-					.col-sm-2
+					.col-sm-2.input-title
 						| Start
 					.col-sm-10
 						select.selectpicker.start-month(data-width='35%')#chart-input-start-month
@@ -59,7 +63,7 @@ append content
 						select.selectpicker.start-time(data-width='35%')#chart-input-start-time
 			div
 				.row
-					.col-sm-2
+					.col-sm-2.input-title
 						| End
 					.col-sm-10
 						select.selectpicker.end-month(data-width='35%')#chart-input-end-month
@@ -68,30 +72,30 @@ append content
 		.col-md-6
 			div
 				.row
-					.col-sm-2
+					.col-sm-3.input-title
 						| Type
-					.col-sm-4
+					.col-sm-3
 						select.selectpicker(data-width='100%')#chart-input-type
 							option(value='degrees') degrees
 							option(value='diameters') diameters
 							option(value='components') components
-					.col-sm-2
+					.col-sm-3.input-title
 						| Interval
-					.col-sm-4
+					.col-sm-3
 						select.selectpicker(data-width='100%')#chart-input-interval
 				.row
-					.col-sm-2
+					.col-sm-3.input-title
 						| Radius (m)
-					.col-sm-4
+					.col-sm-3
 						input.col-sm-12#chart-input-radius(type=text, value = 500)
-					.col-sm-2
-						| Placeholder
-					.col-sm-4
+					.col-sm-3.input-title
+						| 
+					.col-sm-3
 			div
 				.row
 
 		.col-md-2
-			button.button-full-width#chart-generate-button Generate
+			.button.btn.btn-default.button-full-width#chart-generate-button Generate
 
 	#taxi-data
 
@@ -124,6 +128,11 @@ append content
 		var recommended_intervals = [ 60 ];
 
 
+		var boundaries = [ {id : 'NW', x: 37.99999, y: -122.56000},
+														{id : 'NE', x: 37.99999, y: -122.00000},
+														{id : 'SE', x: 37.20000, y: -122.00000},
+														{id : 'SW', x: 37.20000, y: -122.56000} ];
+
 		// Taxi animation
 		//
 		// Create a map centered in San Fransisco
@@ -142,17 +151,13 @@ append content
 
 		function generate_taxi_animation(start_time,end_time)
 		{
-			var boundaries = [ {id : 'NW', x: 37.99999, y: -122.56000},
-															{id : 'NE', x: 37.99999, y: -122.00000},
-															{id : 'SE', x: 37.20000, y: -122.00000},
-															{id : 'SW', x: 37.20000, y: -122.56000} ];
 			// Create a new overlay and bind it to our map
 			overlay = new OverlayView();
 			overlay.setMap(map);
 
 
 			var frame_step = 60;	
-			var frame_transition = 900;	
+			var frame_transition = 1000;	
 
 			var data_url = '/dataset/taxi_sf_epoch/';
 			var data_chunk_size = 3600;
@@ -205,7 +210,7 @@ append content
 			var chart_div = d3.select('#taxi-data');
 			var chart_svg = chart_div.append('svg')
 				.attr('height',400)
-				.attr('width',1800)
+				.attr('width',function(){return (end_time-start_time)/60 + 200;});
 
 			var interval = 60;
 			var data_url = '/dataset/taxi_sf_epoch/';

@@ -26,8 +26,6 @@ function TaxiChartDrawer(params){
 
 TaxiChartDrawer.prototype.chart_drawing_loop = function()
 {
-	if (this.marker === 300)
-		return;
 
 	var _this = this;
 
@@ -65,9 +63,11 @@ TaxiChartDrawer.prototype.chart_drawing_loop = function()
 			var draw_chart_promise = _this.draw_chart(_this.marker++,chart_data);
 			draw_chart_promise
 				.then(function(msg){
-					console.log(_this.current_time + ' vs ' + _this.end_time);
 					if (_this.stop_drawing || _this.current_time >= _this.end_time)
+					{
+						console.log('Ended because ' + _this.stop_drawing + ' or ' + _this.current_time);
 						return;
+					}
 					else
 					{
 						return _this.chart_drawing_loop();
@@ -214,7 +214,7 @@ TaxiChartDrawer.prototype.draw_chart = function(draw_marker,chart_data)
 		});
 
 	return new Promise( function(resolve,reject){
-		setTimeout(resolve(),20);
+		resolve();
 	});
 }
 

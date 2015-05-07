@@ -21,8 +21,8 @@ function TaxiAnimation(overlay, params){
 
 TaxiAnimation.prototype.animation_loop = function()
 {
-	console.log('started animation_loop');
 	var _this = this;
+
 
 	var current_batch = [];
 	for (var i = 0; i < _this.active_data.length; i++)
@@ -50,22 +50,29 @@ TaxiAnimation.prototype.animation_loop = function()
 		});
 	}
 
-	var graph_promise = TaxiAnimation.build_graph(current_batch,_this.radius);	
 
-	graph_promise.then(function(returned_graph){
-		//console.log(msg + ' up to ' + _this.current_time);
-		var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
-		animation_promise
-			.then(function(msg){
-				console.log(msg + ' up to ' + _this.current_time);
-				if (_this.stop_animation || _this.current_time >= _this.end_time)
-					return;
-				else
-				{
-					return _this.animation_loop();
-				}
-			});
-	});
+		var graph_promise = TaxiAnimation.build_graph(current_batch,_this.radius);	
+		graph_promise.then(function(returned_graph){
+			var ct = new Date(_this.current_time*1000); 
+			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-7));
+			//console.log(msg + ' up to ' + _this.current_time);
+			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+			animation_promise
+				.then(function(msg){
+					console.log(msg + ' up to ' + _this.current_time);
+					if (_this.stop_animation || _this.current_time >= _this.end_time)
+					{
+						console.log('stopped');
+						return new Promise( function(resolve,reject){
+							resolve('Stopped animation');
+						});
+					}
+					else
+					{
+						return _this.animation_loop();
+					}
+				});
+		});
 };
 
 
@@ -85,22 +92,33 @@ TaxiAnimation.build_graph = function(data,radius)
 	graph.find_neighbours_and_edges(radius);
 	graph.build_components();
 
-	/*
+
 	graph.components.forEach(function(component){
 		if (component.length > 15)
-			node.color = '#ff0000';
+			component.forEach(function(node){
+				node.color = '#ff0000';
+			});
 		else if (component.length > 13)
-			node.color = '#a81662';
+			component.forEach(function(node){
+				node.color = '#a81662';
+			});
 		else if (component.length > 9)
-			node.color = '#c94b8c';
+			component.forEach(function(node){
+				node.color = '#c94b8c';
+			});
 		else if (component.length > 5)
-			node.color = '#d870e6';
+			component.forEach(function(node){
+				node.color = '#d870e6';
+			});
 		else if (component.length > 1)
-			node.color = '#a370e6';
+			component.forEach(function(node){
+				node.color = '#a370e6';
+			});
 		else
-			node.color = 'gray';
+			component.forEach(function(node){
+				node.color = 'gray';
+			});
 	});
-	*/
 
 	console.log('build time: ' + (performance.now()-a));
 	return new Promise( function(resolve,reject){
@@ -112,7 +130,6 @@ TaxiAnimation.draw_graph = function(graph,overlay)
 {
 	var a = performance.now();
 	overlay.nodes = graph.nodes;
-	console.log(overlay.nodes);
 	overlay.edges = graph.edges;
 	overlay.update();
 	console.log('draw time: ' + (performance.now()-a));
