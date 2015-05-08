@@ -101,7 +101,7 @@ function OverlayView(){
 				.transition()
 					.delay(transition_time*0.8)
 					.duration(transition_time*0.2)
-					.style('stroke-width','0.5pt')
+					.style('stroke-width','2pt')
 			connections.exit()
 				.transition().duration(transition_time*0.25).style('stroke-width','0pt')
 				.remove();
@@ -185,6 +185,7 @@ function OverlayView(){
 			.attr({
 				'cx': function(d){return position.x - offset.x},
 				'cy': function(d){return position.y - offset.y},
+				'r': 6,
 				'fill': function(d){return d.color}
 			})
 	}
@@ -195,6 +196,7 @@ function OverlayView(){
 			.attr({
 				'cx': function(d){return position.x - offset.x},
 				'cy': function(d){return position.y - offset.y},
+				'r': 6,
 				'fill': function(d){return d.color}
 			})
 	}
@@ -206,8 +208,8 @@ function OverlayView(){
 			.attr({
 				'cx': function(d){return position.x - offset.x},
 				'cy': function(d){return position.y - offset.y},
+				'r':6,
 				'fill': function(d){return d.color},
-				'r':4,
 			});
 	}
 

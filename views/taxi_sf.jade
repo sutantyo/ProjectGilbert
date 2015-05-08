@@ -10,19 +10,19 @@ append content
 	.container-fluid
 		.row.no-gutter#data-panel
 			.col-sm-4
-				div.input-title
-					| Start Time
+				div
+					.title-box.button.btn.btn-default.button-full-width Start Time 
 				div
 					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
 					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
 					select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
 			.col-sm-4
 				div.input-title
-					| Current Time 
-				div.input-title#map-info-time
+					.title-box.button.btn.btn-default.button-full-width Current Time
+				.button.btn.btn-default.button-full-width#map-info-time 00:00:00
 			.col-sm-4
 				div.input-title
-					| End Time
+					.title-box.button.btn.btn-default.button-full-width End Time
 				div
 					select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
 					select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
@@ -30,18 +30,13 @@ append content
 
 		.row.row-eq-height.no-gutter#info-panel
 			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
-				//.col-md-6.col-sm-2.col-xs-6.input-title
-				| Interval
+				.title-box.button.btn.btn-default.button-full-width Interval
 			.col-md-1.col-sm-1.col-xs-3
-				//.col-md-6.col-sm-2.col-xs-6
 				select.selectpicker(data-width='100%')#map-input-interval
 			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
-				//.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
-				| Radius
+				.title-box.button.btn.btn-default.button-full-width Radius
 			.col-md-1.col-sm-1.col-xs-3
-				input.form-control
-				//input.col-md-1#map-input-radius(type=text,value=100)
-				//input.col-md-6.col-sm-2.col-xs-6#map-input-radius(type=text, value = 500)
+				input.form-control#map-input-radius(type=text,value=100)
 			.col-md-2.col-sm-2.col-xs-6
 				.button.btn.btn-default.button-full-width#map-label-button Label
 			.col-md-2.col-sm-2.col-xs-6

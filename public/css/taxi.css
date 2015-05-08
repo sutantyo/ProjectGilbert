@@ -33,9 +33,8 @@ footer{
 	margin-bottom: 20px;
 }
 
-.input-title{
-	text-align: center;
-	font-size: 120%;
+.title-box{
+	background-color: #eceaea;
 }
 .clicked{
 	background-color: #dcd6ed;
