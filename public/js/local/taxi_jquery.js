@@ -138,7 +138,6 @@ $(document).ready(function(){
 		coverageRadius = $('#map-input-radius').val();	
 		if (UTC_end_time <= UTC_start_time)
 		{
-			alert("Start time is greater than or equal to end time");
 		$('.map-input').removeAttr('disabled','disabled');
 		}
 		else
@@ -148,7 +147,6 @@ $(document).ready(function(){
 			console.log(animation_controller);
 			generate_taxi_animation(UTC_start_time,UTC_end_time,$('#map-input-radius').val(),$('#map-input-interval').val())
 				.then(function(returned_value){
-						console.log('1st then');
 						animation_controller = returned_value;
 						animation_controller.stop_animation = true;
 						$('#map-generate-button').hide();
@@ -156,20 +154,22 @@ $(document).ready(function(){
 						$('#map-reset-button').show();
 						return animation_controller.animation_loop();
 					},function(){
-						alert('Error retrieving data');		
 				})
 				.then(function(){
-						alert('2nd then');
-						animation_controller.add_listeners_to_circles();
+						animation_controller.add_listeners_on_circles();
 				});	
 		}
+
+	});
 
 	$('#map-start-button').click(function(){
 		if (animation_controller)
 		{
+			animation_controller.remove_listeners_on_circles();
 			$('#map-start-button').hide();
 			$('#map-reset-button').hide();
 			$('#map-stop-button').show();
+
 			animation_controller.stop_animation = false;
 			animation_controller.animation_loop();
 		}
@@ -184,6 +184,7 @@ $(document).ready(function(){
 		{
 			if (animation_controller.current_time < animation_controller.end_time)
 			{
+				animation_controller.add_listeners_on_circles();
 				$('#map-stop-button').hide();
 				$('#map-start-button').show();
 				$('#map-reset-button').show();
@@ -191,7 +192,8 @@ $(document).ready(function(){
 			}
 			else
 			{
-				animation_controller.overlay.setMap(null);
+				//animation_controller.overlay.setMap(null);
+				animation_controller.overlay.main_svg.selectAll('*').remove();
 				$('#map-generate-button').show();
 				$('#map-stop-button').hide();
 				$('.map-input').removeAttr('disabled','disabled');
@@ -205,7 +207,7 @@ $(document).ready(function(){
 	});
 
 	$('#map-reset-button').click(function(){
-		animation_controller.overlay.setMap(null);
+		animation_controller.overlay.main_svg.selectAll('*').remove();
 		$('.map-input').removeAttr('disabled','disabled');
 		$('#map-generate-button').show();
 		$('#map-start-button').hide();
@@ -215,11 +217,9 @@ $(document).ready(function(){
 		
 
 
-	});
 
 	$('#chart-generate-button').click(function(){
 
-		console.log("GENERATING...");
 		var UTC_start_time = ($('#chart-input-start-day').val() + ' ' + $('#chart-input-start-month').val() + ' ' + available_year
 											+ ' ' + $('#chart-input-start-time').val() + ' UTC');
 		UTC_start_time = new Date(UTC_start_time);

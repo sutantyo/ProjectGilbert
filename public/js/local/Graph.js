@@ -2,8 +2,6 @@ function Graph(){
 	this.nodes = [];
 	this.components = [];
 	this.edges = [];
-
-	this.neighbours_are_set = false;
 }
 
 		// Find the distance (in metres) between two coordinates on the map
@@ -89,7 +87,6 @@ Graph.prototype.build_components = function()
 			current_component.push(this.nodes[i]);
 			if (this.nodes[i].infected)
 			{
-				console.log('found infected node');
 				current_component.infected = true;
 			}
 
@@ -106,7 +103,6 @@ Graph.prototype.build_components = function()
 						{
 							if (neighbour.infected)
 							{
-								console.log('found infected neighbour');
 								current_component.infected = true;
 							}
 							current_component.push(neighbour);

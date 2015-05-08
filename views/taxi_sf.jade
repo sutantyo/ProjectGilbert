@@ -7,45 +7,50 @@ append content
 		h2 San Francisco Taxi
 			small &nbsp animation of crawdad data
 
-	.row.no-gutter#data-panel
-		.col-sm-4
-			div.input-title
-				| Start Time
-			div
-				select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
-				select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
-				select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
-		.col-sm-4
-			div.input-title
-				| Current Time 
-			div.input-title#map-info-time
-		.col-sm-4
-			div.input-title
-				| End Time
-			div
-				select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
-				select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
-				select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
+	.container-fluid
+		.row.no-gutter#data-panel
+			.col-sm-4
+				div.input-title
+					| Start Time
+				div
+					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
+					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
+					select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
+			.col-sm-4
+				div.input-title
+					| Current Time 
+				div.input-title#map-info-time
+			.col-sm-4
+				div.input-title
+					| End Time
+				div
+					select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
+					select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
+					select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
 
-	.row.no-gutter#info-panel
-		.col-md-2
-			.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
+		.row.row-eq-height.no-gutter#info-panel
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+				//.col-md-6.col-sm-2.col-xs-6.input-title
 				| Interval
-			.col-md-6.col-sm-2.col-xs-6
+			.col-md-1.col-sm-1.col-xs-3
+				//.col-md-6.col-sm-2.col-xs-6
 				select.selectpicker(data-width='100%')#map-input-interval
-		.col-md-2
-			.col-md-6.col-sm-2.col-xs-6.input-title
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+				//.col-md-offset-0.col-md-6.col-sm-offset-4.col-sm-2.col-xs-6.input-title
 				| Radius
-			input.col-md-6.col-sm-2.col-xs-6#map-input-radius(type=text, value = 500)
-		.col-md-2
-			.button.btn.btn-default.button-full-width#map-label-button Label
-		.col-md-2
-			.button.clicked.btn.btn-default.button-full-width#map-edge-button Edges
-		.col-md-4
-			.button.btn.btn-default.button-full-width#map-generate-button Generate
-			.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
-			.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
-			.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
+			.col-md-1.col-sm-1.col-xs-3
+				input.form-control
+				//input.col-md-1#map-input-radius(type=text,value=100)
+				//input.col-md-6.col-sm-2.col-xs-6#map-input-radius(type=text, value = 500)
+			.col-md-2.col-sm-2.col-xs-6
+				.button.btn.btn-default.button-full-width#map-label-button Label
+			.col-md-2.col-sm-2.col-xs-6
+				.button.clicked.btn.btn-default.button-full-width#map-edge-button Edges
+			.col-md-4.col-sm-4.col-xs-12
+				.button.btn.btn-default.button-full-width#map-generate-button Generate
+				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
+				.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
+				.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
 	#taxi-anim
 
 	.page-header
@@ -145,28 +150,20 @@ append content
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
-		//var currentTime = new Date(end_time*1000);
-		//d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
+		var data_url = '/dataset/taxi_sf_epoch/';
+		var data_chunk_size = 3600;
 
-		var overlay;
 
 		function generate_taxi_animation(start_time,end_time,radius,interval)
 		{
-			// Create a new overlay and bind it to our map
-			overlay = new OverlayView();
+
+			var overlay = new OverlayView();
+			overlay.setTransitionTime(1000);
+			overlay.setBoundaries(boundaries);
 			overlay.setMap(map);
-
-			var data_url = '/dataset/taxi_sf_epoch/';
-			var data_chunk_size = 3600;
-
-			var frame_transition = 1000;	
-
 
 			// Set some parameters for the overlay animation (e.g. transition time), 
 			// these methods are in our inherited class
-			overlay.setTransitionTime(frame_transition);
-			overlay.setBoundaries(boundaries);
-
 			animation_parameters = { animation_start_time : start_time, 
 															 animation_end_time		: end_time,
 															 animation_step				: parseInt(interval),
@@ -212,7 +209,7 @@ append content
 				.attr('height',400)
 				.attr('width',function(){return (end_time-start_time)/60 + 200;});
 
-			var interval = 60;
+			var interval = 1200;
 			var data_url = '/dataset/taxi_sf_epoch/';
 			var data_chunk_size = 3600;
 

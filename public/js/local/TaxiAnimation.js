@@ -21,32 +21,6 @@ function TaxiAnimation(overlay, params){
 	this.infected = [];
 }
 
-TaxiAnimation.prototype.add_listeners_to_circles = function()
-{
-	var _this = this;
-	if (_this.overlay.main_svg)
-	{
-		console.log('adding listeners');
-		_this.overlay.main_svg.selectAll('circle').style('cursor','crosshair')
-			.on('click',function(d){
-				console.log('clicked');
-				if (_this.infected[d.id])
-				{
-					_this.infected[d.id] = false;
-					_this.build_graph().then(function(returned_graph){
-						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
-					});
-				}
-				else
-				{
-					_this.infected[d.id] = true;
-					_this.build_graph().then(function(returned_graph){
-						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
-					});
-				}
-			});
-	}
-}
 
 
 TaxiAnimation.prototype.animation_loop = function()
@@ -84,7 +58,6 @@ TaxiAnimation.prototype.animation_loop = function()
 
 	//setTimeout(function(){
 		_this.build_graph().then(function(returned_graph){
-			console.log('... finished graph');
 			var ct = new Date(_this.current_time*1000); 
 			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-4));
 			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
@@ -92,7 +65,6 @@ TaxiAnimation.prototype.animation_loop = function()
 				.then(function(msg){
 					if (_this.stop_animation || _this.current_time >= _this.end_time)
 					{
-						console.log(msg);
 						return new Promise( function(resolve,reject){
 							resolve('Stopped animation');
 						});
@@ -109,7 +81,6 @@ TaxiAnimation.prototype.animation_loop = function()
 
 TaxiAnimation.prototype.build_graph = function()
 {
-	console.log('calling build graph');
 	var _this = this;
 	var a = performance.now();
 	var graph = new Graph();
@@ -122,7 +93,6 @@ TaxiAnimation.prototype.build_graph = function()
 			if (_this.infected[datum.id] === true)		
 			{
 				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: true});
-				console.log('set a node to infected');
 			}
 			else
 				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: false});
@@ -164,22 +134,57 @@ TaxiAnimation.prototype.build_graph = function()
 	});
 
 	return new Promise( function(resolve,reject){
-		console.log('build time: ' + (performance.now()-a));
+		//console.log('build time: ' + (performance.now()-a));
 		resolve(graph);
 	});
 }
 
 TaxiAnimation.draw_graph = function(graph,overlay)
 {
-	console.log('calling draw graph');
+	//console.log('calling draw graph');
 	var a = performance.now();
 	overlay.nodes = graph.nodes;
 	overlay.edges = graph.edges;
 	overlay.update();
 	return new Promise( function(resolve,reject){
 		setTimeout(function(){
-			console.log('draw time: ' + (performance.now()-a));
+			//console.log('draw time: ' + (performance.now()-a));
 			resolve('...finished drawing')},1000);
 	});
 }
 
+
+TaxiAnimation.prototype.add_listeners_on_circles = function()
+{
+	var _this = this;
+	if (_this.overlay.main_svg)
+	{
+		_this.overlay.main_svg.selectAll('circle').style('cursor','crosshair')
+			.on('click',function(d){
+				if (_this.infected[d.id])
+				{
+					_this.infected[d.id] = false;
+					_this.build_graph().then(function(returned_graph){
+						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+					});
+				}
+				else
+				{
+					_this.infected[d.id] = true;
+					_this.build_graph().then(function(returned_graph){
+						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+					});
+				}
+			});
+	}
+}
+
+TaxiAnimation.prototype.remove_listeners_on_circles = function()
+{
+	var _this = this;
+	if (_this.overlay.main_svg)
+	{
+		_this.overlay.main_svg.selectAll('circle').style('cursor','crosshair')
+			.on('click',null)
+	}
+}
