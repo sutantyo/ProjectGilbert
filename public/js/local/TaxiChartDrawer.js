@@ -18,7 +18,7 @@ function TaxiChartDrawer(params){
 	this.type = params.chart_type;
 	this.max_value = 150;
 	this.svg_height = 400;
-	this.radius = 500;
+	this.radius = params.chart_radius;
 
 	this.marker = 0;
 	this.stop_drawing = false;

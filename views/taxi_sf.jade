@@ -196,22 +196,19 @@ append content
 			});
 		}
 
-		function generate_taxi_chart(start_time,end_time,type)
+		function generate_taxi_chart(start_time,end_time,type,radius,interval)
 		{
 
 			var chart_div = d3.select('#taxi-data');
 			var chart_svg = chart_div.append('svg')
 				.attr('height',400)
-				.attr('width',function(){return (end_time-start_time)/60 + 200;});
-
-			var interval = 1200;
-			var data_url = '/dataset/taxi_sf_epoch/';
-			var data_chunk_size = 3600;
+				.attr('width',function(){return (end_time-start_time)/interval + 200;});
 
 			chart_parameters = { chart_start_time : start_time,
 													 chart_end_time   : end_time,
-													 chart_interval   : interval,
+													 chart_interval   : parseInt(interval),
 													 chart_type				: type,
+													 chart_radius     : parseInt(radius),
 													 data_url					: data_url,
 													 data_chunk_size  : data_chunk_size,
 													 data_max_value   : 150,
