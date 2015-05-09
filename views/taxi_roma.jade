@@ -4,88 +4,125 @@ append additional_header
 append content
 
 	.page-header
-		h2 Roma Taxi
+		h2 San Francisco Taxi
 			small &nbsp animation of crawdad data
 
-	.row#data-panel
-		.col-sm-5
-			div
-				| &nbsp start time
-			div
-				select.selectpicker(data-width='25%')#start-month
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='15%')#start-day
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='60%')#start-time
-		.col-sm-2
-			div
-				| month day
-			div
-				span#info-time.large 
-		.col-sm-5
-			div
-				| &nbsp end time
-			div
-				select.selectpicker(data-width='25%')#end-month
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='15%')#end-day
-					option(value=1) one
-					option(value=2) two
-					option(value=3) three
-				select.selectpicker(data-width='60%')#end-time
+	.container-fluid
+		.row.no-gutter#data-panel
+			.col-sm-4
+				div
+					.title-box.button.btn.btn-default.button-full-width Start Time 
+				div
+					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
+					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
+					select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
+			.col-sm-4
+				div.input-title
+					.title-box.button.btn.btn-default.button-full-width Current Time
+				.button.btn.btn-default.button-full-width#map-info-time 00:00:00
+			.col-sm-4
+				div.input-title
+					.title-box.button.btn.btn-default.button-full-width End Time
+				div
+					select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
+					select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
+					select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
 
-
-	.row#info-panel
-		.col-md-3.col1
-			| placeholder
-		.col-md-3.col2
-			| placeholder
-		.col-md-3.col3
-			| placeholder
-		.col-md-3.col5
-			button.button#start-button Start
-			button.button#stop-button(style='display:none') Stop
-			button.button#reset-button Reset
+		.row.row-eq-height.no-gutter#info-panel
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+				.title-box.button.btn.btn-default.button-full-width Interval
+			.col-md-1.col-sm-1.col-xs-3
+				select.selectpicker(data-width='100%')#map-input-interval
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+				.title-box.button.btn.btn-default.button-full-width Radius
+			.col-md-1.col-sm-1.col-xs-3
+				input.form-control#map-input-radius(type=text,value=100)
+			.col-md-2.col-sm-2.col-xs-6
+				.button.btn.btn-default.button-full-width#map-label-button Label
+			.col-md-2.col-sm-2.col-xs-6
+				.button.clicked.btn.btn-default.button-full-width#map-edge-button Edges
+			.col-md-4.col-sm-4.col-xs-12
+				.button.btn.btn-default.button-full-width#map-generate-button Generate
+				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
+				.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
+				.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
 	#taxi-anim
 
+	.page-header
+		h2 Data charts
+			small &nbsp 
+	
+	.row.no-gutter#chart-info-panel
+		.col-md-4
+			div
+				.row
+					.col-sm-2.input-title
+						| Start
+					.col-sm-10
+						select.selectpicker.start-month(data-width='35%')#chart-input-start-month
+						select.selectpicker.start-day(data-width='30%')#chart-input-start-day
+						select.selectpicker.start-time(data-width='35%')#chart-input-start-time
+			div
+				.row
+					.col-sm-2.input-title
+						| End
+					.col-sm-10
+						select.selectpicker.end-month(data-width='35%')#chart-input-end-month
+						select.selectpicker.end-day(data-width='30%')#chart-input-end-day
+						select.selectpicker.end-time(data-width='35%')#chart-input-end-time
+		.col-md-6
+			div
+				.row
+					.col-sm-3.input-title
+						| Type
+					.col-sm-3
+						select.selectpicker(data-width='100%')#chart-input-type
+							option(value='degrees') degrees
+							option(value='diameters') diameters
+							option(value='components') components
+					.col-sm-3.input-title
+						| Interval
+					.col-sm-3
+						select.selectpicker(data-width='100%')#chart-input-interval
+				.row
+					.col-sm-3.input-title
+						| Radius (m)
+					.col-sm-3
+						input.col-sm-12#chart-input-radius(type=text, value = 500)
+					.col-sm-3.input-title
+						| 
+					.col-sm-3
+			div
+				.row
+
+		.col-md-2
+			.button.btn.btn-default.button-full-width#chart-generate-button Generate
+
+	#taxi-data
 
 	script.
-
-		// parameters to control the animation
-		var frameLimit = 5;
-		var frame = 1;
-		
-		var framePause = 2000;
-		var frameTransition = framePause-100;
-
-		var proceed = false;
 
 		// parameters specific to Taxi Roma dataset:
 		// ... the earliest timestamp is 1391212800, 
 		// ... the latest timestamp is 1393804798,
 
-		var time_increments = 15;
-		var startTime = 1391212800;
-		var endTime = startTime + time_increments;
+		// boundary points for our svg
+		var boundaries = [ {id : 'NW', x: 42.23961, y: 12.04925},
+								  		{id : 'NE', x: 42.23961, y: 12.85368},
+								  		{id : 'SE', x: 41.65899, y: 12.85368},
+								  		{id : 'SW', x: 41.65899, y: 12.04925} ];
+
 
 		// boundary points for our svg
-		var boundary_points = [ {id : 'NW', x: 42.23961, y: 12.04925},
-											  		{id : 'NE', x: 42.23961, y: 12.85368},
-											  		{id : 'SE', x: 41.65899, y: 12.85368},
-											  		{id : 'SW', x: 41.65899, y: 12.04925} ];
 
-		// parameters for the graph
-		var coverageRadius = 500;
+		var available_year = 2014;
+		var available_dates = [  {month: 'February',  min_date: '1', max_date: '28'},
+														 {month: 'March', min_date: '1',  max_date: '2'} ];
+		var available_times = [	'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00',
+													  '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
+														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
+		var recommended_intervals = [ 15, 30, 45, 60 ];
 
-		// container (and lookup table) for the data, i.e. GPS location of taxis
-		var _graph_nodes = [];
-		var _graph_edges = [];
 
 		// create a map 
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
@@ -96,112 +133,103 @@ append content
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
-		// extend Google Maps' OverlayView class and create a new OverlayView object
-		OverlayView.prototype = new google.maps.OverlayView();
-		var overlay = new OverlayView();
 
-		// bind the overlay to the map (thus calling overlay.onAdd)
-		overlay.setMap(map);
-		overlay.setTransitTime(frameTransition);
-
-		// start the chain
-		d3.select('#info-time').text('  ' + startTime.toTimeString().substr(0,8));
-		
-		function mainLoop()
-		{
-			_updatePoints(overlay);
-
-			startTime = endTime+1;
-			endTime = endTime + time_increments;
-			currentTime = new Date(endTime*1000);
-			d3.select('#info-time').text('  ' +	currentTime.toTimeString().substr(0,8));
-		}
+		var data_url = '/dataset/taxi_roma_epoch/';
+		var data_chunk_size = 3600;
 
 
-		/*
-		function _gatherData()
+		function generate_taxi_animation(start_time,end_time,radius,interval)
 		{
 
-			var graph = new TaxiGraph();
-		
-			//d3.json ....
-			{
-				var _duplicate_check = [];
-				data.forEach(
-			}
+			var overlay = new OverlayView();
+			overlay.setTransitionTime(1000);
+			overlay.setBoundaries(boundaries);
+			overlay.setMap(map);
 
-		}
-		*/
+			// Set some parameters for the overlay animation (e.g. transition time), 
+			// these methods are in our inherited class
+			animation_parameters = { animation_start_time : start_time, 
+															 animation_end_time		: end_time,
+															 animation_step				: parseInt(interval),
+															 data_url							: data_url,
+															 data_chunk						: data_chunk_size,
+															 radius								: radius
+														};	
+			var anim = new TaxiAnimation(overlay, animation_parameters);
+			//anim.animation_loop();
 
 
-		function _updatePoints(overlay){
-			d3.json('/dataset/taxi_roma_epoch/time?start=' + startTime + '&end=' + endTime, function(error,data)
-				{
-					//console.log('Frame: ' + frame + ' start time: ' + startTime);
-					_graph_nodes.length = 0;
-					_graph_edges.length = 0;
-
-					var _duplicate_check = [];
-					data.forEach(function(datum){
-						if (_duplicate_check.indexOf(datum.id) == -1)	
+			return new Promise (function(resolve,reject){
+				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
+					if (error) reject('Error getting initial data' + error);
+					else
+					{
+						anim.active_data = data;
+						if (start_time+data_chunk_size <= end_time)
 						{
-							//if (datum.id == 352 || datum.id == 234 || datum.id == 37 || datum.id == 310 || datum.id == 322)
-							{
-							//console.log('Data: ' + '(' + datum.x + ',' + datum.y + ')');
-								_graph_nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
-								_duplicate_check.push(datum.id);
-							}
+							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
+								if (error) reject('Error getting initial data' + error);
+								else
+								{
+									anim.next_set_of_data = data;
+									resolve(anim);
+								}
+							});
 						}
-					});
-					_graph_findNeighbours();
+						else
+						{
+							resolve(anim);
+						}
+					}
+				});
+			});
+		}
 
-					graphs.length = 0;
-					var a = performance.now();
-					_graph_buildGraph();
-					var b = performance.now();
-					console.log('Buildgraph: ' + (b-a));
+		function generate_taxi_chart(start_time,end_time,type,radius,interval)
+		{
 
+			var chart_div = d3.select('#taxi-data');
+			var chart_svg = chart_div.append('svg')
+				.attr('height',400)
+				.attr('width',function(){return (end_time-start_time)/interval + 200;});
 
-					graphs.forEach(function(graph,i){
-						var list_of_node = '';
-						graph.forEach(function(node){
-							list_of_node = list_of_node + ' ' + node.id;
-						});
-						console.log('Graph ' + i + ':' + list_of_node);
-						console.log('... diameter: ' + graph.diameter);
-					});
-					
-					graphs.forEach(function(graph,i){
-						var graph_size = graph.length;
-						var list_of_node = '';
-						graph.forEach(function(node){
-							list_of_node = list_of_node + ' ' + node.id;
-							if (graph_size > 15)
-								node.color = '#ff0000';
-							else if (graph_size > 13)
-								node.color = '#a81662';
-							else if (graph_size > 9)
-								node.color = '#c94b8c';
-							else if (graph_size > 5)
-								node.color = '#d870e6';
-							else if (graph_size > 1)
-								node.color = '#a370e6';
-							else
-								node.color = 'gray';
-						});
-						//console.log('Graph ' + i + ', size ' + graph.length + ' :' + list_of_node);
-					});
-					
-					overlay.nodes = _graph_nodes;
-					overlay.edges = _graph_edges;
-					overlay.update();
-			}); // end d3.json
-		};
+			chart_parameters = { chart_start_time : start_time,
+													 chart_end_time   : end_time,
+													 chart_interval   : parseInt(interval),
+													 chart_type				: type,
+													 chart_radius     : parseInt(radius),
+													 data_url					: data_url,
+													 data_chunk_size  : data_chunk_size,
+													 data_max_value   : 150,
+													 svg 							: chart_svg,
+													 svg_height				: 400,
+												 };
 
+			var chart_drawer = new TaxiChartDrawer(chart_parameters);
 
+			return new Promise (function(resolve,reject){
+				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
+					if (error) reject('Error getting initial data' + error);
+					else
+					{
+						chart_drawer.active_data = data;
+						if (start_time+data_chunk_size <= end_time)
+						{
+							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
+								if (error) reject('Error getting initial data' + error);
+								else
+								{
+									chart_drawer.next_set_of_data = data;
+									resolve(chart_drawer);
+								}
+							});
+						}
+						else
+						{
+							resolve(chart_drawer);
+						}
+					}
+				});
+			});	
 
-
-		
-
-
-
+		}

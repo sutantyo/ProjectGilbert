@@ -138,7 +138,8 @@ $(document).ready(function(){
 		coverageRadius = $('#map-input-radius').val();	
 		if (UTC_end_time <= UTC_start_time)
 		{
-		$('.map-input').removeAttr('disabled','disabled');
+			alert("Start time is greater than or equal to end time");
+			$('.map-input').removeAttr('disabled','disabled');
 		}
 		else
 		{
