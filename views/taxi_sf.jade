@@ -29,11 +29,11 @@ append content
 					select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
 
 		.row.row-eq-height.no-gutter#info-panel
-			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs
 				.title-box.button.btn.btn-default.button-full-width Interval
 			.col-md-1.col-sm-1.col-xs-3
 				select.selectpicker(data-width='100%')#map-input-interval
-			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
+			.col-md-1.col-sm-1.col-xs-0.hidden-xs
 				.title-box.button.btn.btn-default.button-full-width Radius
 			.col-md-1.col-sm-1.col-xs-3
 				input.form-control#map-input-radius(type=text,value=100)
@@ -46,57 +46,48 @@ append content
 				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
 				.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
 				.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
+
 	#taxi-anim
 
 	.page-header
 		h2 Data charts
 			small &nbsp 
-	
-	.row.no-gutter#chart-info-panel
-		.col-md-4
-			div
-				.row
-					.col-sm-2.input-title
-						| Start
-					.col-sm-10
-						select.selectpicker.start-month(data-width='35%')#chart-input-start-month
-						select.selectpicker.start-day(data-width='30%')#chart-input-start-day
-						select.selectpicker.start-time(data-width='35%')#chart-input-start-time
-			div
-				.row
-					.col-sm-2.input-title
-						| End
-					.col-sm-10
-						select.selectpicker.end-month(data-width='35%')#chart-input-end-month
-						select.selectpicker.end-day(data-width='30%')#chart-input-end-day
-						select.selectpicker.end-time(data-width='35%')#chart-input-end-time
-		.col-md-6
-			div
-				.row
-					.col-sm-3.input-title
-						| Type
-					.col-sm-3
-						select.selectpicker(data-width='100%')#chart-input-type
-							option(value='degrees') degrees
-							option(value='diameters') diameters
-							option(value='components') components
-					.col-sm-3.input-title
-						| Interval
-					.col-sm-3
-						select.selectpicker(data-width='100%')#chart-input-interval
-				.row
-					.col-sm-3.input-title
-						| Radius (m)
-					.col-sm-3
-						input.col-sm-12#chart-input-radius(type=text, value = 500)
-					.col-sm-3.input-title
-						| 
-					.col-sm-3
-			div
-				.row
 
-		.col-md-2
-			.button.btn.btn-default.button-full-width#chart-generate-button Generate
+	.container-fluid
+		.row.no-gutter#chart-info-panel
+			.col-md-4.col-sm-6.col-xs-12
+				div
+					.title-box.button.btn.btn-default(style='width:20%') Start
+					select.selectpicker.start-month(data-width='25%')#chart-input-start-month
+					select.selectpicker.start-day(data-width='25%')#chart-input-start-day
+					select.selectpicker.start-time(data-width='30%')#chart-input-start-time
+			.col-md-4.col-sm-6.col-xs-12
+				div
+					.title-box.button.btn.btn-default(style='width:20%') End
+					select.selectpicker.end-month(data-width='25%')#chart-input-end-month
+					select.selectpicker.end-day(data-width='25%')#chart-input-end-day
+					select.selectpicker.end-time(data-width='30%')#chart-input-end-time
+			.col-md-2.col-sm-2.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width Type
+			.col-md-2.col-sm-2.col-xs-6
+				select.selectpicker(data-width='100%')#chart-input-type
+					option(value='degrees') degrees
+					option(value='diameters') diameters
+					option(value='components') components
+			.col-md-2.col-sm-2.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width Interval
+			.col-md-2.col-sm-2.col-xs-6
+				select.selectpicker(data-width='100%')#chart-input-interval
+			.col-md-2.col-sm-2.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width Radius
+			.col-md-2.col-sm-2.col-xs-6
+				input.form-control#chart-input-radius(type=text,value=100)
+			.col-md-2.col-sm-2.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width Max
+			.col-md-2.col-sm-2.col-xs-6
+				input.form-control#chart-input-max(type=text,value=150)
+			.col-md-offset-8.col-md-4.col-sm-12.col-xs.12
+				.button.btn.btn-default.button-full-width#chart-generate-button Generate
 
 	#taxi-data
 
@@ -196,7 +187,7 @@ append content
 			});
 		}
 
-		function generate_taxi_chart(start_time,end_time,type,radius,interval)
+		function generate_taxi_chart(start_time,end_time,type,radius,interval,max_value)
 		{
 
 			var chart_div = d3.select('#taxi-data');
@@ -211,9 +202,9 @@ append content
 													 chart_radius     : parseInt(radius),
 													 data_url					: data_url,
 													 data_chunk_size  : data_chunk_size,
-													 data_max_value   : 150,
+													 data_max_value   : parseInt(max_value),
 													 svg 							: chart_svg,
-													 svg_height				: 400,
+													 svg_height				: 400
 												 };
 
 			var chart_drawer = new TaxiChartDrawer(chart_parameters);

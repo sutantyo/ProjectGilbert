@@ -244,7 +244,8 @@ $(document).ready(function(){
 													UTC_end_time.getTime()/1000, 
 													$('#chart-input-type').val(), 
 													$('#chart-input-radius').val(),
-													$('#chart-input-interval').val())
+													$('#chart-input-interval').val(),
+													$('#chart-input-max').val())
 				.then(function(returned_value){
 					returned_value.chart_drawing_loop();
 				});
