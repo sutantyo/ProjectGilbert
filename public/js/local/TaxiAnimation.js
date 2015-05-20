@@ -19,8 +19,12 @@ function TaxiAnimation(overlay, params){
 	this.current_data = [];
 
 	this.infected = [];
-}
 
+	this.x_min = params.x_min;
+	this.x_max = params.x_max;
+	this.y_min = params.y_min;
+	this.y_max = params.y_max;
+}
 
 
 TaxiAnimation.prototype.animation_loop = function()
@@ -87,21 +91,28 @@ TaxiAnimation.prototype.build_graph = function()
 	var _duplicate_check = [];
 
 	_this.current_data.forEach(function(datum){
-		if (_duplicate_check[datum.id] !== 1)
+		if ( _this.x_min <= datum.x && datum.x <= _this.x_max &&
+				 _this.y_min <= datum.y && datum.y <= _this.y_max)
 		{
-			_duplicate_check[datum.id] = 1;
-			if (_this.infected[datum.id] === true)		
+			if (_duplicate_check[datum.id] !== 1)
 			{
-				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: true});
+				_duplicate_check[datum.id] = 1;
+				if (_this.infected[datum.id] === true)		
+				{
+					graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: true});
+				}
+				else
+				{
+					graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: false});
+				}
 			}
-			else
-				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: false});
 		}
 	});
 	graph.find_neighbours_and_edges(_this.radius);
 	graph.build_components();
 
 	graph.components.forEach(function(component){
+
 		if (component.infected)
 			component.forEach(function(node){
 				node.color = '#8de854';
@@ -132,6 +143,7 @@ TaxiAnimation.prototype.build_graph = function()
 				node.color = 'gray';
 			});
 	});
+
 
 	return new Promise( function(resolve,reject){
 		//console.log('build time: ' + (performance.now()-a));
@@ -188,3 +200,4 @@ TaxiAnimation.prototype.remove_listeners_on_circles = function()
 			.on('click',null)
 	}
 }
+

@@ -2,6 +2,7 @@ function Graph(){
 	this.nodes = [];
 	this.components = [];
 	this.edges = [];
+	this.triangles = [];
 }
 
 		// Find the distance (in metres) between two coordinates on the map
@@ -23,7 +24,10 @@ Graph.convertMtoLL = function(m){
 	return (m * 0.00000893831118);
 }
 
-
+Graph.prototype.sort_nodes = function()
+{
+	nodes.sort(function(a,b){return a-b});
+}
 
 // Given a graph, go through the set of nodes, and for each node, see if there 
 // are any other nodes located within the radius 
@@ -66,6 +70,65 @@ Graph.prototype.find_neighbours_and_edges = function(radius)
 		}// end for j
 	}// end for i
 }
+
+
+
+Graph.prototype.build_triangles = function()
+/* Go through the graph and populate the array 'this.triangles' with arrays of nodes that
+ * form a triangle. 
+ * We use the node-iterator algorithm as described by Algorithm 1 in
+ *   Schank, Wagner - Finding, counting and listing all triangles in large graphs, an experimental study
+ */
+{
+	var a = performance.now();
+	var _this = this;
+	if (_this.nodes.length === 0)
+		return 
+	else if (_this.components.length === 0)
+		_this.build_components();
+
+	_this.components.forEach(function(component){
+		component.sort(function(a,b){
+			if (a.id > b.id)
+				return 1;
+			if (a.id <= b.id)
+				return -1;
+		});
+		if (component.length > 2)
+		{
+			var neighbours = [];
+			component.forEach(function(node){
+				neighbours[node.id] = [];
+			});
+			for (var i = 0; i < component.length; i++)
+			{
+				for (var j = 0; j < component[i].neighbours.length; j++)
+				{
+					if (component[i].id < component[i].neighbours[j].id)
+					{
+						neighbours[component[i].id].forEach(function(node1){
+							neighbours[component[i].neighbours[j].id].forEach(function(node2){
+								if (node1 === node2)
+								{
+									var current_triangle = [];
+									current_triangle.push(node1);
+									current_triangle.push(component[i]);
+									current_triangle.push(component[i].neighbours[j]);
+									_this.triangles.push(current_triangle);
+								}
+							});
+						});
+
+						neighbours[component[i].neighbours[j].id].push(component[i]);	
+					}
+				}
+			}
+		}
+	});
+	console.log(this.triangles.length);	
+	console.log('Time taken: ' + (performance.now()-a));
+}
+
 
 Graph.prototype.build_components = function()
 {

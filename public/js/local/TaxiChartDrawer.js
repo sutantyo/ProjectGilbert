@@ -14,14 +14,31 @@ function TaxiChartDrawer(params){
 	this.active_data = [];
 	this.next_set_of_data = [];
 
-	this.svg = params.svg;
 	this.type = params.chart_type;
 	this.max_value = params.data_max_value;
-	this.svg_height = params.svg_height;
 	this.radius = params.chart_radius;
 
 	this.marker = 0;
 	this.stop_drawing = false;
+
+	this.x_min = params.x_min;
+	this.x_max = params.x_max;
+	this.y_min = params.y_min;
+	this.y_max = params.y_max;
+
+	this.svg = params.svg;
+	this.svg_axis = params.svg_axis;
+	this.svg_height = params.svg_height;
+	this.svg_width = params.svg_width;
+
+	var x = d3.time.scale()
+		.domain([new Date(params.chart_start_time*1000), new Date(params.chart_end_time*1000)])
+		.range([0,params.svg_width])
+
+	var xAxis = d3.svg.axis().scale(x);
+
+	params.svg.append('g').call(xAxis);
+	
 }
 
 TaxiChartDrawer.prototype.chart_drawing_loop = function()
@@ -58,7 +75,7 @@ TaxiChartDrawer.prototype.chart_drawing_loop = function()
 
 	setTimeout(function(){
 		var graph_promise;
-		graph_promise = TaxiChartDrawer.build_graph(current_batch,_this.radius,_this.type);	
+		graph_promise = _this.build_graph(current_batch,_this.radius,_this.type);	
 		graph_promise.then(function(chart_data){
 			var draw_chart_promise = _this.draw_chart(_this.marker++,chart_data);
 			draw_chart_promise
@@ -77,17 +94,23 @@ TaxiChartDrawer.prototype.chart_drawing_loop = function()
 	},0);
 }
 
-TaxiChartDrawer.build_graph = function(data,radius,type)
+TaxiChartDrawer.prototype.build_graph = function(data,radius,type)
 {
 	var a = performance.now();
+	var _this = this;
 	var graph = new Graph();
 	var _duplicate_check = [];
 
+	console.log(_this.x_min + ' ' + _this.x_max + ' ' + _this.y_min + ' ' + _this.y_max);
 	data.forEach(function(datum){
-		if (_duplicate_check[datum.id] !== 1)
+		if ( _this.x_min <= datum.x && datum.x <= _this.x_max &&
+				 _this.y_min <= datum.y && datum.y <= _this.y_max)
 		{
+			if (_duplicate_check[datum.id] !== 1)
+			{
 				graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: []});
 				_duplicate_check[datum.id] = 1;
+			}
 		}
 	});
 	graph.find_neighbours(radius);
@@ -104,6 +127,7 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 			degrees_sum = degrees_sum + node.neighbours.length;
 		});
 		degrees.sort(function(a,b){return a-b});
+		chart_data.type = 'quartile_type';
 		chart_data.push({
 			 pctl25: degrees[Math.round(degrees.length/4)],
 			 pctl50: degrees[Math.round(degrees.length/2)],
@@ -121,6 +145,7 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 		});
 
 		diameters.sort(function(a,b){return a-b});
+		chart_data.type = 'quartile_type';
 		chart_data.push({
 			 pctl25: diameters[Math.round(diameters.length/4)],
 			 pctl50: diameters[Math.round(diameters.length/2)],
@@ -137,12 +162,21 @@ TaxiChartDrawer.build_graph = function(data,radius,type)
 		});
 
 		component_sizes.sort(function(a,b){return a-b});
+		chart_data.type = 'quartile_type';
 		chart_data.push({
 			 pctl25: component_sizes[Math.round(component_sizes.length/4)],
 			 pctl50: component_sizes[Math.round(component_sizes.length/2)],
 			 pctl75: component_sizes[Math.round(3 * component_sizes.length/4)],
 			 pctl100: component_sizes[component_sizes.length-1]
 			});
+	}
+	else if (type === 'triangles')
+	{
+		graph.build_components();
+		graph.build_triangles();
+		var triangles_count = [];
+		chart_data.type = 'count_type';
+		chart_data.push({count: graph.triangles.length});
 	}
 	else
 	{
@@ -167,51 +201,67 @@ TaxiChartDrawer.prototype.draw_chart = function(draw_marker,chart_data)
 	var enterSelection = _this.svg.append('g').selectAll('rect').data(chart_data).enter();
 	var width = 1;
 
-	enterSelection	
-		.append('rect')
-		.attr({
-			x:		function(d,i) { return draw_marker; },
-			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl25))},
-			width: width,
-			height: function(d,i){return _this.scalingFn(d.pctl25)},
-			fill: '#7f3fed'
-		});
-	enterSelection	
-		.append('rect')
-		.attr({
-			x:		function(d,i) { return draw_marker; },
-			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl50))},
-			width: width,
-			height: function(d,i){return _this.scalingFn(d.pctl50) - _this.scalingFn(d.pctl25)},
-			fill: '#7db8ec'
-		});
-	enterSelection
-		.append('rect')
-		.attr({
-			x:		function(d,i) { return draw_marker; },
-			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl75))},
-			width: width,
-			height: function(d,i){return _this.scalingFn(d.pctl75)-_this.scalingFn(d.pctl50)},
-			fill: '#a77eed'
-		});
-	enterSelection
-		.append('rect')
-		.attr({
-			x:		function(d,i) { return draw_marker; },
-			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl100))},
-			width: width,
-			height: function(d,i){return _this.scalingFn(d.pctl100)-_this.scalingFn(d.pctl75)},
-			fill: '#b0d0ec'
-		});
-	enterSelection
-		.append('rect')
-		.attr({
-			x:		function(d,i) { return draw_marker; },
-			y:		function(d) {return (_this.svg_height - _this.scalingFn(d.mean))},
-			width: width,
-			height: function(d,i){return 1},
-			fill: 'red'
-		});
+	if (chart_data.type === 'quartile_type')
+	{
+		enterSelection	
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl25))},
+				width: width,
+				height: function(d,i){return _this.scalingFn(d.pctl25)},
+				fill: '#7f3fed'
+			});
+		enterSelection	
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl50))},
+				width: width,
+				height: function(d,i){return _this.scalingFn(d.pctl50) - _this.scalingFn(d.pctl25)},
+				fill: '#7db8ec'
+			});
+		enterSelection
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl75))},
+				width: width,
+				height: function(d,i){return _this.scalingFn(d.pctl75)-_this.scalingFn(d.pctl50)},
+				fill: '#a77eed'
+			});
+		enterSelection
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl100))},
+				width: width,
+				height: function(d,i){return _this.scalingFn(d.pctl100)-_this.scalingFn(d.pctl75)},
+				fill: '#b0d0ec'
+			});
+		enterSelection
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.mean))},
+				width: width,
+				height: function(d,i){return 1},
+				fill: 'red'
+			});
+	}
+	else if (chart_data.type === 'count_type')
+	{
+		enterSelection
+			.append('rect')
+			.attr({
+				x:		function(d,i) { return draw_marker; },
+				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.count))},
+				width: width,
+				height: function(d,i){return _this.scalingFn(d.count)},
+				fill: '#b0d0ec'
+			});
+
+	}
 
 	return new Promise( function(resolve,reject){
 		resolve();

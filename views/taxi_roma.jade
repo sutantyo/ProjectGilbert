@@ -3,93 +3,6 @@ append additional_header
 
 append content
 
-	.page-header
-		h2 Roma Taxi
-			small &nbsp animation of crawdad data
-
-	.container-fluid
-		.row.no-gutter#data-panel
-			.col-sm-4
-				div
-					.title-box.button.btn.btn-default.button-full-width Start Time 
-				div
-					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
-					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
-					select.selectpicker.map-input.start-time(data-width='35%')#map-input-start-time
-			.col-sm-4
-				div.input-title
-					.title-box.button.btn.btn-default.button-full-width Current Time
-				.button.btn.btn-default.button-full-width#map-info-time 00:00:00
-			.col-sm-4
-				div.input-title
-					.title-box.button.btn.btn-default.button-full-width End Time
-				div
-					select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
-					select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
-					select.selectpicker.map-input.end-time(data-width='35%')#map-input-end-time
-
-		.row.row-eq-height.no-gutter#info-panel
-			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
-				.title-box.button.btn.btn-default.button-full-width Interval
-			.col-md-1.col-sm-1.col-xs-3
-				select.selectpicker(data-width='100%')#map-input-interval
-			.col-md-1.col-sm-1.col-xs-0.hidden-xs.input-title
-				.title-box.button.btn.btn-default.button-full-width Radius
-			.col-md-1.col-sm-1.col-xs-3
-				input.form-control#map-input-radius(type=text,value=100)
-			.col-md-2.col-sm-2.col-xs-6
-				.button.btn.btn-default.button-full-width#map-label-button Label
-			.col-md-2.col-sm-2.col-xs-6
-				.button.clicked.btn.btn-default.button-full-width#map-edge-button Edges
-			.col-md-4.col-sm-4.col-xs-12
-				.button.btn.btn-default.button-full-width#map-generate-button Generate
-				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
-				.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
-				.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
-	#taxi-anim
-
-	.page-header
-		h2 Data charts
-			small &nbsp 
-	
-	.container-fluid
-		.row.no-gutter#chart-info-panel
-			.col-md-4.col-sm-6.col-xs-12
-				div
-					.title-box.button.btn.btn-default(style='width:20%') Start
-					select.selectpicker.start-month(data-width='25%')#chart-input-start-month
-					select.selectpicker.start-day(data-width='25%')#chart-input-start-day
-					select.selectpicker.start-time(data-width='30%')#chart-input-start-time
-			.col-md-4.col-sm-6.col-xs-12
-				div
-					.title-box.button.btn.btn-default(style='width:20%') End
-					select.selectpicker.end-month(data-width='25%')#chart-input-end-month
-					select.selectpicker.end-day(data-width='25%')#chart-input-end-day
-					select.selectpicker.end-time(data-width='30%')#chart-input-end-time
-			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Type
-			.col-md-2.col-sm-2.col-xs-6
-				select.selectpicker(data-width='100%')#chart-input-type
-					option(value='degrees') degrees
-					option(value='diameters') diameters
-					option(value='components') components
-			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Interval
-			.col-md-2.col-sm-2.col-xs-6
-				select.selectpicker(data-width='100%')#chart-input-interval
-			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Radius
-			.col-md-2.col-sm-2.col-xs-6
-				input.form-control#chart-input-radius(type=text,value=100)
-			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Max
-			.col-md-2.col-sm-2.col-xs-6
-				input.form-control#chart-input-max(type=text,value=150)
-			.col-md-offset-8.col-md-4.col-sm-12.col-xs.12
-				.button.btn.btn-default.button-full-width#chart-generate-button Generate
-
-	#taxi-data
-
 	script.
 
 		// parameters specific to Taxi Roma dataset:
@@ -97,10 +10,10 @@ append content
 		// ... the latest timestamp is 1393804798,
 
 		// boundary points for our svg
-		var boundaries = [ {id : 'NW', x: 42.23961, y: 12.04925},
-								  		{id : 'NE', x: 42.23961, y: 12.85368},
-								  		{id : 'SE', x: 41.65899, y: 12.85368},
-								  		{id : 'SW', x: 41.65899, y: 12.04925} ];
+		var default_boundaries = [  {id : 'NW', x: 42.23961, y: 12.04925},
+																{id : 'NE', x: 42.23961, y: 12.85368},
+																{id : 'SE', x: 41.65899, y: 12.85368},
+																{id : 'SW', x: 41.65899, y: 12.04925} ];
 
 
 		// boundary points for our svg

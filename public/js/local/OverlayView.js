@@ -32,7 +32,7 @@ function OverlayView(){
 	};
 
 	this.onAdd = function() {
-		console.log('onAdd');
+		//console.log('onAdd');
 		_main_layer  = d3.select(this.getPanes().overlayMouseTarget).append('div').attr('id','main-layer');
 		this.main_svg	=	_main_layer.append('svg').style('position','absolute')
 	};
@@ -42,7 +42,7 @@ function OverlayView(){
 	};
 
 	this.draw = function() {
-		console.log("called draw");
+		//console.log("called draw");
 		_projection = this.getProjection();
 		var _NW_point = find_pixel_position_of(boundary_points[0]);
 		offset = {x : _NW_point.x, y : _NW_point.y};
@@ -74,7 +74,7 @@ function OverlayView(){
 	};
 
 	this.update = function(){
-		console.log("called update");
+		//console.log("called update");
 
 		this.main_svg
 			.style('left', offset.x + 'px')

@@ -1,5 +1,4 @@
 $(document).ready(function(){
-	var animation_controller;
 
 	available_dates.forEach(function(period){
 		$('.start-month').append('<option value = "' + period.month + '">' + period.month + '</option>'); 
@@ -17,245 +16,26 @@ $(document).ready(function(){
 		$('.start-time').append('<option value = "' + period + '">' + period + '</option>'); 
 		$('.end-time').append('<option value = "' + period + '">' + period + '</option>'); 
 	});
+	
+	// Set default values
 	$('.start-time').val('10:00');
 	$('.start-time').selectpicker('render');
 	$('.end-time').val('11:00');
 	$('.end-time').selectpicker('render');
+	$('.default-sw-coord-x').val(map_boundaries[3].x);
+	$('.default-sw-coord-y').val(map_boundaries[3].y);
+	$('.default-ne-coord-x').val(map_boundaries[1].x);
+	$('.default-ne-coord-y').val(map_boundaries[1].y)
 
 	recommended_intervals.forEach(function(interval){
 		$('#chart-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
 		$('#map-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
 	});
 
-	/* END OF BRITTLENESS (I hope) */
-
-	$('#map-input-start-month').change(function(){
-		var _this = $(this);
-		available_dates.forEach(function(dates){
-			if (dates.month === _this.val())
-			{
-				$('#map-input-start-day').empty();
-				for(var i = dates.min_date; i <= dates.max_date; i++)
-				{
-					$('#map-input-start-day').append('<option value = "' + i + '">' + i + '</option>'); 
-				}
-				$('#map-input-start-day').selectpicker('refresh');
-			}
-		});
-	});
-	$('#map-input-end-month').change(function(){
-		var _this = $(this);
-		available_dates.forEach(function(dates){
-			if (dates.month === _this.val())
-			{
-				$('#map-input-end-day').empty();
-				for(var i = dates.min_date; i <= dates.max_date; i++)
-				{
-					$('#map-input-end-day').append('<option value = "' + i + '">' + i + '</option>'); 
-				}
-				$('#map-input-end-day').selectpicker('refresh');
-			}
-		});
-	});
-	$('#map-edge-button').click(function(){
-		var _this = this;
-		if ($(_this).hasClass('clicked'))
-		{
-			animation_controller.overlay.show_edges = false;
-			animation_controller.overlay.update();
-			$(_this).removeClass('clicked');
-		}
-		else
-		{
-			animation_controller.overlay.show_edges = true;
-			animation_controller.overlay.update();
-			$(_this).addClass('clicked');
-		}
-	});
-	$('#map-label-button').click(function(){
-		var _this = this;
-		if ($(_this).hasClass('clicked'))
-		{
-			animation_controller.overlay.show_labels = false;
-			animation_controller.overlay.update();
-			$(_this).removeClass('clicked');
-		}
-		else
-		{
-			animation_controller.overlay.show_labels = true;
-			animation_controller.overlay.update();
-			$(_this).addClass('clicked');
-		}
-
-	});
-
-
-	// Chart related
-	$('#chart-input-start-month').change(function(){
-		var _this = $(this);
-		available_dates.forEach(function(dates){
-			if (dates.month === _this.val())
-			{
-				$('#chart-input-start-day').empty();
-				for(var i = dates.min_date; i <= dates.max_date; i++)
-				{
-					$('#chart-input-start-day').append('<option value = "' + i + '">' + i + '</option>'); 
-				}
-				$('#chart-input-start-day').selectpicker('refresh');
-			}
-		});
-	});
-	$('#chart-input-end-month').change(function(){
-		var _this = $(this);
-		available_dates.forEach(function(dates){
-			if (dates.month === _this.val())
-			{
-				$('#chart-input-end-day').empty();
-				for(var i = dates.min_date; i <= dates.max_date; i++)
-				{
-					$('#chart-input-end-day').append('<option value = "' + i + '">' + i + '</option>'); 
-				}
-				$('#chart-input-end-day').selectpicker('refresh');
-			}
-		});
-	});
-
-
-	// Interesting code starts here:
-
-	$('#map-generate-button').click(function(){
-		$('.map-input').attr('disabled','disabled');
-		var UTC_start_time = ($('#map-input-start-day').val() + ' ' + $('#map-input-start-month').val() + ' ' + available_year
-											+ ' ' + $('#map-input-start-time').val() + ' UTC');
-		UTC_start_time = new Date(UTC_start_time);
-		UTC_start_time = UTC_start_time.getTime()/1000;
-		var UTC_end_time = ($('#map-input-end-day').val() + ' ' + $('#map-input-end-month').val() + ' ' + available_year
-											+ ' ' + $('#map-input-end-time').val() + ' UTC');
-		UTC_end_time = new Date(UTC_end_time);
-		UTC_end_time = UTC_end_time.getTime()/1000;
-
-
-		coverageRadius = $('#map-input-radius').val();	
-		if (UTC_end_time <= UTC_start_time)
-		{
-			alert("Start time is greater than or equal to end time");
-			$('.map-input').removeAttr('disabled','disabled');
-		}
-		else
-		{
-			animation_controller = null;
-			console.log("Generating map animation from " + UTC_start_time + ' to ' + UTC_end_time);
-			console.log(animation_controller);
-			generate_taxi_animation(UTC_start_time,UTC_end_time,$('#map-input-radius').val(),$('#map-input-interval').val())
-				.then(function(returned_value){
-						animation_controller = returned_value;
-						animation_controller.stop_animation = true;
-						$('#map-generate-button').hide();
-						$('#map-start-button').show();
-						$('#map-reset-button').show();
-						return animation_controller.animation_loop();
-					},function(){
-				})
-				.then(function(){
-						animation_controller.add_listeners_on_circles();
-				});	
-		}
-
-	});
-
-	$('#map-start-button').click(function(){
-		if (animation_controller)
-		{
-			animation_controller.remove_listeners_on_circles();
-			$('#map-start-button').hide();
-			$('#map-reset-button').hide();
-			$('#map-stop-button').show();
-
-			animation_controller.stop_animation = false;
-			animation_controller.animation_loop();
-		}
-		else 
-		{
-			alert('Error: animation not ready');
-		}
-	});
-
-	$('#map-stop-button').click(function(){
-		if (animation_controller)
-		{
-			if (animation_controller.current_time < animation_controller.end_time)
-			{
-				animation_controller.add_listeners_on_circles();
-				$('#map-stop-button').hide();
-				$('#map-start-button').show();
-				$('#map-reset-button').show();
-				animation_controller.stop_animation = true;
-			}
-			else
-			{
-				//animation_controller.overlay.setMap(null);
-				animation_controller.overlay.main_svg.selectAll('*').remove();
-				$('#map-generate-button').show();
-				$('#map-stop-button').hide();
-				$('.map-input').removeAttr('disabled','disabled');
-			}
-		}
-		else
-		{
-			alert('It seems that you ran into a bug, please reload the page');
-		}
-
-	});
-
-	$('#map-reset-button').click(function(){
-		animation_controller.overlay.main_svg.selectAll('*').remove();
-		$('.map-input').removeAttr('disabled','disabled');
-		$('#map-generate-button').show();
-		$('#map-start-button').hide();
-		$('#map-reset-button').hide();
-		$('#map-stop-button').hide();
-	});
-		
-
-
-
-	$('#chart-generate-button').click(function(){
-
-		var UTC_start_time = ($('#chart-input-start-day').val() + ' ' + $('#chart-input-start-month').val() + ' ' + available_year
-											+ ' ' + $('#chart-input-start-time').val() + ' UTC');
-		UTC_start_time = new Date(UTC_start_time);
-		var UTC_end_time = ($('#chart-input-end-day').val() + ' ' + $('#chart-input-end-month').val() + ' ' + available_year
-											+ ' ' + $('#chart-input-end-time').val() + ' UTC');
-		UTC_end_time = new Date(UTC_end_time);
-
-		coverageRadius = $('#chart-input-radius').val();	
-		if (UTC_end_time <= UTC_start_time)
-			alert("Start time is greater than or equal to end time");
-		else
-		{
-			console.log("Generating chart data from " + UTC_start_time + ' to ' + UTC_end_time);
-			//chart_div.select('svg').remove();
-			//chart_svg = chart_div.append('svg')
-			//.attr('height',400)
-			//.attr('width',1800)
-			//chartDrawer(UTC_start_time.getTime()/1000,UTC_end_time.getTime()/1000, $('#chart-input-type').val(), 60,$('#chart-input-radius').val(),1);
-			d3.select('#taxi-data').select('svg').remove();
-			generate_taxi_chart(UTC_start_time.getTime()/1000,
-													UTC_end_time.getTime()/1000, 
-													$('#chart-input-type').val(), 
-													$('#chart-input-radius').val(),
-													$('#chart-input-interval').val(),
-													$('#chart-input-max').val())
-				.then(function(returned_value){
-					returned_value.chart_drawing_loop();
-				});
-		}
-	});
-
-	$('#chart-input-type').change(function(){
-	});
 	
-	$('#chart-input-radius').change(function(){
-		console.log('radius changed');
-	});
-});
+
+});// end jquery
+
+
+
+

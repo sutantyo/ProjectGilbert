@@ -88,3 +88,10 @@ select {
 
 #chart-info-panel{
 }
+
+
+
+#svg-axis{
+	position: absolute;
+	left: 40px;
+}
