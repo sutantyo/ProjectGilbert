@@ -28,8 +28,7 @@ $(document).ready(function(){
 	$('.default-ne-coord-y').val(map_boundaries[1].y)
 
 	recommended_intervals.forEach(function(interval){
-		$('#chart-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
-		$('#map-input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
+		$('.input-interval').append('<option value = "' + interval + '">' + interval + '</option>'); 
 	});
 
 	

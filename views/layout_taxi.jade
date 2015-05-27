@@ -5,10 +5,11 @@ prepend additional_header
 	script(src='/js/local/OverlayView.js', charset='utf-8')
 	script(src='/js/local/Graph.js', charset='utf-8')
 	script(src='/js/local/TaxiAnimation.js', charset='utf-8')
-	script(src='/js/local/TaxiChartDrawer.js', charset='utf-8')
+	script(src='/js/local/TaxiData.js', charset='utf-8')
 	script(src='/js/local/taxi_jquery.js', charset='utf-8')
 	script(src='/js/local/taxi_draw_jquery.js', charset='utf-8')
 	script(src='/js/local/taxi_chart_jquery.js', charset='utf-8')
+	script(src='/js/local/taxi_export_jquery.js', charset='utf-8')
 	script(src='/js/lib/async.js', charset='utf-8')
 	link(rel='stylesheet', href='/css/taxi.css')
 
@@ -22,7 +23,7 @@ prepend content
 		.row.no-gutter
 			.col-sm-4
 				div
-					.title-box.button.btn.btn-default.button-full-width Start Time 
+					.title-box.map-input.button.btn.btn-default.button-full-width Start Time 
 				div
 					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
 					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
@@ -33,7 +34,7 @@ prepend content
 				.button.btn.btn-default.button-full-width#map-info-time 00:00:00
 			.col-sm-4
 				div.input-title
-					.title-box.button.btn.btn-default.button-full-width End Time
+					.title-box.map-input.button.btn.btn-default.button-full-width End Time
 				div
 					select.selectpicker.map-input.end-month(data-width='35%')#map-input-end-month
 					select.selectpicker.map-input.end-day(data-width='30%')#map-input-end-day
@@ -59,7 +60,7 @@ prepend content
 			.col-md-1.col-sm-1.col-xs-0.hidden-xs
 				.title-box.map-input.button.btn.btn-default.button-full-width Interval
 			.col-md-1.col-sm-1.col-xs-3
-				select.map-input.selectpicker(data-width='100%')#map-input-interval
+				select.map-input.selectpicker(data-width='100%').input-interval#map-input-interval
 			.col-md-1.col-sm-1.col-xs-0.hidden-xs
 				.title-box.map-input.button.btn.btn-default.button-full-width Radius
 			.col-md-1.col-sm-1.col-xs-3
@@ -78,6 +79,12 @@ prepend content
 
 	#taxi-anim
 
+	// 
+	//
+	// Chart section
+	//
+	//
+
 	.page-header
 		h2 Data charts
 			small &nbsp 
@@ -86,16 +93,16 @@ prepend content
 		.row.no-gutter
 			.col-md-6.col-sm-6.col-xs-12
 				div
-					.title-box.button.btn.btn-default(style='width:20%') Start
-					select.selectpicker.start-month(data-width='25%')#chart-input-start-month
-					select.selectpicker.start-day(data-width='25%')#chart-input-start-day
-					select.selectpicker.start-time(data-width='30%')#chart-input-start-time
+					.title-box.chart-input.button.btn.btn-default(style='width:20%') Start
+					select.chart-input.selectpicker.start-month(data-width='25%')#chart-input-start-month
+					select.chart-input.selectpicker.start-day(data-width='25%')#chart-input-start-day
+					select.chart-input.selectpicker.start-time(data-width='30%')#chart-input-start-time
 			.col-md-6.col-sm-6.col-xs-12
 				div
-					.title-box.button.btn.btn-default(style='width:20%') End
-					select.selectpicker.end-month(data-width='25%')#chart-input-end-month
-					select.selectpicker.end-day(data-width='25%')#chart-input-end-day
-					select.selectpicker.end-time(data-width='30%')#chart-input-end-time
+					.title-box.chart-input.button.btn.btn-default(style='width:20%') End
+					select.chart-input.selectpicker.end-month(data-width='25%')#chart-input-end-month
+					select.chart-input.selectpicker.end-day(data-width='25%')#chart-input-end-day
+					select.chart-input.selectpicker.end-time(data-width='30%')#chart-input-end-time
 		.row.no-gutter
 			.col-md-4.col-sm-4.col-xs-12
 				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-custom-area Use custom area 
@@ -116,31 +123,149 @@ prepend content
 
 		.row.no-gutter
 			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Type
+				.title-box.chart-input.button.btn.btn-default.button-full-width Type
 			.col-md-2.col-sm-2.col-xs-6
-				select.selectpicker(data-width='100%')#chart-input-type
+				select.chart-input.selectpicker(data-width='100%')#chart-input-type
 					option(value='degrees') degrees
 					option(value='diameters') diameters
-					option(value='components') components
-					option(value='components_count') components count
-					option(value='triangles') triangles
+					option(value='component_sizes') component sizes
+					option(value='no_of_components') number of components
+					option(value='no_of_triangles') triangles
 			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Interval
+				.title-box.chart-input.button.btn.btn-default.button-full-width Interval
 			.col-md-2.col-sm-2.col-xs-6
-				select.selectpicker(data-width='100%')#chart-input-interval
+				select.chart-input.selectpicker(data-width='100%').input-interval#chart-input-interval
 			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Radius
+				.title-box.chart-input.button.btn.btn-default.button-full-width Radius
 			.col-md-2.col-sm-2.col-xs-6
-				input.form-control#chart-input-radius(type=text,value=100)
+				input.chart-input.form-control#chart-input-radius(type=text,value=100)
 			.col-md-2.col-sm-2.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width Max
+				.title-box.chart-input.button.btn.btn-default.button-full-width Max
 			.col-md-2.col-sm-2.col-xs-6
-				input.form-control#chart-input-max(type=text,value=150)
-			.col-md-offset-8.col-md-4.col-sm-12.col-xs.12
+				input.chart-input.chart-input.form-control#chart-input-max(type=text,value=150)
+			.col-md-offset-8.col-md-4.col-sm-12.col-xs-12
 				.button.btn.btn-default.button-full-width#chart-generate-button Generate
+				.button.btn.btn-default.button-half-width#chart-start-button(style='display:none') Start 
+				.button.btn.btn-default.button-full-width#chart-stop-button(style='display:none')  Stop
+				.button.btn.btn-default.button-half-width#chart-reset-button(style='display:none') Reset
 
 	#taxi-data
 				
+	// 
+	// 
+	// Export Data Section
+	//
+	//
 
+	.page-header
+		h2 Export data
+			small &nbsp 
 
+	.container-fluid
+		.row.no-gutter
+			.col-md-6.col-sm-6.col-xs-12
+				div
+					.title-box.export-input.button.btn.btn-default(style='width:20%') Start
+					select.export-input.selectpicker.start-month(data-width='25%')#export-input-start-month
+					select.export-input.selectpicker.start-day(data-width='25%')#export-input-start-day
+					select.export-input.selectpicker.start-time(data-width='30%')#export-input-start-time
+			.col-md-6.col-sm-6.col-xs-12
+				div
+					.title-box.export-input.button.btn.btn-default(style='width:20%') End
+					select.export-input.selectpicker.end-month(data-width='25%')#export-input-end-month
+					select.export-input.selectpicker.end-day(data-width='25%')#export-input-end-day
+					select.export-input.selectpicker.end-time(data-width='30%')#export-input-end-time
 
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-custom-area Use custom area 
+			.col-md-2.col-sm-2.col-xs-4
+				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-se-coord SW coord
+			.col-md-1.col-sm-1.col-xs-4
+				input.export-input.form-control.default-sw-coord-x#export-input-sw-coord-x(type=number,value=100)
+			.col-md-1.col-sm-1.col-xs-4
+				input.export-input.form-control.default-sw-coord-y#export-input-sw-coord-y(type=number,value=100)
+			.col-md-2.col-sm-2.col-xs-4
+				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-nw-coord NE coord 
+			.col-md-1.col-sm-1.col-xs-4
+				input.export-input.form-control.default-ne-coord-x#export-input-ne-coord-x(type=number,value=100)
+			.col-md-1.col-sm-1.col-xs-4
+				input.export-input.form-control.default-ne-coord-y#export-input-ne-coord-y(type=number,value=100)
+
+		.row.no-gutter
+			.col-md-1.col-sm-1.hidden-xs
+				.title-box.export-input.button.btn.btn-default.button-full-width Interval
+			.col-md-1.col-sm-1.col-xs-3
+				select.export-input.selectpicker(data-width='100%').input-interval#export-input-interval
+			.col-md-1.col-sm-1.hidden-xs
+				.title-box.export-input.button.btn.btn-default.button-full-width Radius
+			.col-md-1.col-sm-1.col-xs-3
+				input.export-input.form-control#export-input-radius(type=text,value=100)
+			.col-md-4.col-sm-4.col-xs-6
+				.button.btn.btn-default.button-full-width#export-set-button Set Parameters
+				
+	hr
+	.container-fluid
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width Degrees
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='degrees',data-format='csv') Export to CSV
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='degrees',data-format='json') Export to JSON
+			.col-md-6.col-sm-6.col-xs-12
+				.progress(style='display:none',data-type='degrees')
+					.progress-bar#progress-degrees(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+			.col-md-1.col-sm-1.col-xs-6
+				.button.btn.btn-default.button-full-width.download-button#download-degrees(data-type='degrees',data-function='download',style='display:none',disabled='disabled') 
+					span.glyphicon.glyphicon-download-alt
+			.col-md-1.col-sm-1.col-xs-6
+				.button.btn.btn-default.button-full-width.download-button#reset-degrees(data-type='degrees',data-function='reset',style='display:none') 
+					span.glyphicon.glyphicon-remove-circle
+				
+
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width Diameters
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='diameters',data-format='csv') Export to CSV
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='diameters',data-format='json') Export to JSON
+			.col-md-8.col-sm-8.col-xs-12
+				.progress(style='display:none',data-type='diameters')
+					.progress-bar#progress-diameters(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width Component Sizes
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='component_sizes',data-format='csv') Export to CSV
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='component_sizes',data-format='json') Export to JSON
+			.col-md-8.col-sm-8.col-xs-12
+				.progress(style='display:none',data-type='component_sizes')
+					.progress-bar#progress-component_sizes(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width Number of Components
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='no_of_components',data-format='csv') Export to CSV
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='no_of_components',data-format='json') Export to JSON
+			.col-md-8.col-sm-8.col-xs-12
+				.progress(style='display:none',data-type='no_of_components')
+					.progress-bar#progress-no_of_components(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+
+		.row.no-gutter
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width Number of Triangles 
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='triangles',data-format='csv') Export to CSV
+			.col-md-4.col-sm-4.col-xs-12
+				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='triangles',data-format='json') Export to JSON
+			.col-md-8.col-sm-8.col-xs-12
+				.progress(style='display:none',data-type='triangles')
+					.progress-bar#progress-triangles(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+
+			

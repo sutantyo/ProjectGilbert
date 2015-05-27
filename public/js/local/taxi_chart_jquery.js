@@ -32,13 +32,6 @@ $(document).ready(function(){
 		});
 	});
 
-	$('#chart-input-type').change(function(){
-	});
-	
-	$('#chart-input-radius').change(function(){
-	});
-
-
 	$('#chart-button-custom-area').click(function(){
 		var _this = this;
 		if ($(_this).hasClass('clicked'))
@@ -51,13 +44,56 @@ $(document).ready(function(){
 			chart_using_custom_area = true;
 			$(_this).addClass('clicked');
 		}
-
 	});
 
+	$('#chart-start-button').click(function(){
+		if (chart_controller)
+		{
+			$('#chart-start-button').hide();
+			$('#chart-reset-button').hide();
+			$('#chart-stop-button').show();
+			chart_controller.start();
+		}
+		else 
+			alert('Error: chart not generated yet');
+	});
+
+	$('#chart-stop-button').click(function(){
+		if (chart_controller)
+		{
+			if (chart_controller.current_time < chart_controller.end_time)
+			{
+				$('#chart-stop-button').hide();
+				$('#chart-start-button').show();
+				$('#chart-reset-button').show();
+				chart_controller.stop();
+			}
+			else
+			{
+				d3.select('#taxi-data').select('#svg-main').remove();
+				d3.select('#taxi-data').select('#svg-axis').remove();
+				$('#chart-generate-button').show();
+				$('#chart-stop-button').hide();
+				$('.chart-input').removeAttr('disabled','disabled');
+			}
+		}
+		else
+			alert ('It seems that you ran into a bug, please reload the page');
+	});
+
+	$('#chart-reset-button').click(function(){
+			d3.select('#taxi-data').select('#svg-main').remove();
+			d3.select('#taxi-data').select('#svg-axis').remove();
+			$('.chart-input').removeAttr('disabled','disabled');
+			$('#chart-generate-button').show();
+			$('#chart-start-button').hide();
+			$('#chart-reset-button').hide();
+			chart_controller = null;
+	});
 
 	$('#chart-generate-button').click(function(){
 
-
+		$('.chart-input').attr('disabled','disabled');
 		var custom_area_limits = [];
 		if (chart_using_custom_area)
 		{ 
@@ -87,7 +123,6 @@ $(document).ready(function(){
 		else
 		{
 			console.log("Generating chart data from " + UTC_start_time + ' to ' + UTC_end_time);
-			d3.select('#taxi-data').select('svg').remove();
 			generate_taxi_chart(UTC_start_time.getTime()/1000,
 													UTC_end_time.getTime()/1000, 
 													$('#chart-input-type').val(), 
@@ -97,7 +132,10 @@ $(document).ready(function(){
 													map_boundaries,
 													custom_area_limits)
 				.then(function(returned_value){
-					returned_value.chart_drawing_loop();
+					chart_controller = returned_value;
+					$('#chart-generate-button').hide();
+					$('#chart-start-button').show();
+					$('#chart-reset-button').show();
 				});
 		}
 	});
@@ -109,20 +147,19 @@ function generate_taxi_chart(start_time, end_time,
 														 type, radius, interval, max_value,
 														 boundaries, custom_area_limits)
 {
-
 	var svg_height = 400;
 	var svg_width = (end_time-start_time)/interval + 200;
 
 	var chart_div = d3.select('#taxi-data');
-	var chart_svg = chart_div.append('svg')
-		.attr('id','svg-main')
-		.attr('height',svg_height)
-		.attr('width',svg_width)
 	var chart_svg_axis = chart_div.append('svg')
 		.attr('id','svg-axis')
 		.attr('height',svg_height)
 		.attr('width',200)
-	
+	var chart_svg = chart_div.append('svg')
+		.attr('id','svg-main')
+		.attr('height',svg_height)
+		.attr('width',svg_width)
+
 	chart_svg_axis
 		.append('rect')
 		.attr({ height	: svg_height,
@@ -131,11 +168,11 @@ function generate_taxi_chart(start_time, end_time,
 						opacity	: '0.1'})
 
 
-	chart_parameters = { chart_start_time : start_time,
-											 chart_end_time   : end_time,
-											 chart_interval   : parseInt(interval),
-											 chart_type				: type,
-											 chart_radius     : parseInt(radius),
+	chart_parameters = { start_time 			: start_time,
+											 end_time   			: end_time,
+											 type							: type,
+											 radius				    : parseInt(radius),
+											 interval					: parseInt(interval),
 											 data_url					: data_url,
 											 data_chunk_size  : data_chunk_size,
 											 data_max_value   : parseInt(max_value),
@@ -146,10 +183,11 @@ function generate_taxi_chart(start_time, end_time,
 											 svg 							: chart_svg,
 											 svg_axis					: chart_svg_axis,
 											 svg_height				: svg_height,
-											 svg_width				: svg_width 
+											 svg_width				: svg_width,
+											 draw							: true
 										 };
 
-	var chart_drawer = new TaxiChartDrawer(chart_parameters);
+	var chart_drawer = new TaxiData(chart_parameters);
 
 	return new Promise (function(resolve,reject){
 		d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
