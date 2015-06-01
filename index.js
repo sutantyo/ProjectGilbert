@@ -93,7 +93,6 @@ app.get('/dataset/:dataset_name/time', function(req,res){
 				if(err)
 					return console.error('error fetching client from pool', err);
 
-				console.log("SELECT id, x, y, time FROM " + table_name + " WHERE time >= '" + start_time + "' AND time < '" + end_time +"'");
 				client.query("SELECT id, x, y, time FROM " + table_name + " WHERE time >= '" + start_time + "' AND time < '" + end_time +"'", function (err,result){
 					done();
 					if (err){

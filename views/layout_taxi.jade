@@ -150,7 +150,11 @@ prepend content
 				.button.btn.btn-default.button-half-width#chart-reset-button(style='display:none') Reset
 
 	#taxi-data
-				
+		
+	#taxi-save-svg.row.no-gutter
+		.col-md-offset-4.col-md-4.col-sm-12.col-xs-12
+			.button.btn.btn-default.button-full-width#chart-generate-button(disabled='disabled') Save as SVG
+
 	// 
 	// 
 	// Export Data Section
@@ -207,65 +211,27 @@ prepend content
 	hr
 	.container-fluid
 		.row.no-gutter
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width Degrees
 			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='degrees',data-format='csv') Export to CSV
+				.title-box.button.btn.btn-default.button-full-width.export-type(data-type='degrees') Degrees
 			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='degrees',data-format='json') Export to JSON
-			.col-md-6.col-sm-6.col-xs-12
-				.progress(style='display:none',data-type='degrees')
-					.progress-bar#progress-degrees(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
-			.col-md-1.col-sm-1.col-xs-6
-				.button.btn.btn-default.button-full-width.download-button#download-degrees(data-type='degrees',data-function='download',style='display:none',disabled='disabled') 
-					span.glyphicon.glyphicon-download-alt
-			.col-md-1.col-sm-1.col-xs-6
-				.button.btn.btn-default.button-full-width.download-button#reset-degrees(data-type='degrees',data-function='reset',style='display:none') 
-					span.glyphicon.glyphicon-remove-circle
-				
+				.title-box.button.btn.btn-default.button-full-width.export-type(data-type='diameters') Diameters
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-type(data-type='component_sizes') Component Sizes
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-type(data-type='no_of_components') Number of Components
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width.export-type(data-type='no_of_triangles') Number of Triangles
+			.col-md-4.col-sm-4.col-xs-6
+				.title-box.button.btn.btn-default.button-full-width#export-all(data-type='select_all') All
 
+	hr
+	.container-fluid
 		.row.no-gutter
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width Diameters
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='diameters',data-format='csv') Export to CSV
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='diameters',data-format='json') Export to JSON
-			.col-md-8.col-sm-8.col-xs-12
-				.progress(style='display:none',data-type='diameters')
-					.progress-bar#progress-diameters(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+			.col-md-offset-2.col-md-8.col-md-offset-2
+				.title-box.button.btn.btn-default.button-full-width#export-generate-button Generate
+	hr
 
-		.row.no-gutter
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width Component Sizes
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='component_sizes',data-format='csv') Export to CSV
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='component_sizes',data-format='json') Export to JSON
-			.col-md-8.col-sm-8.col-xs-12
-				.progress(style='display:none',data-type='component_sizes')
-					.progress-bar#progress-component_sizes(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+	#taxi-data-results.container-fluid
 
-		.row.no-gutter
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width Number of Components
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='no_of_components',data-format='csv') Export to CSV
-			.col-md-4.col-sm-4.col-xs-6
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='no_of_components',data-format='json') Export to JSON
-			.col-md-8.col-sm-8.col-xs-12
-				.progress(style='display:none',data-type='no_of_components')
-					.progress-bar#progress-no_of_components(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
+	
 
-		.row.no-gutter
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width Number of Triangles 
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='triangles',data-format='csv') Export to CSV
-			.col-md-4.col-sm-4.col-xs-12
-				.title-box.button.btn.btn-default.button-full-width.export-button(data-type='triangles',data-format='json') Export to JSON
-			.col-md-8.col-sm-8.col-xs-12
-				.progress(style='display:none',data-type='triangles')
-					.progress-bar#progress-triangles(role='progressbar',aria-valuenow='0',aria-valuemin='0',aria-valuemax='100',style='min-width: 2em; width:0%;') 0%
-
-			

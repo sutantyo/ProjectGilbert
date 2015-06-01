@@ -125,8 +125,8 @@ Graph.prototype.build_triangles = function()
 			}
 		}
 	});
-	console.log(this.triangles.length);	
-	console.log('Time taken: ' + (performance.now()-a));
+	//console.log(this.triangles.length);	
+	//console.log('Time taken: ' + (performance.now()-a));
 }
 
 

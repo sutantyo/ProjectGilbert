@@ -6,6 +6,7 @@ function TaxiData(params){
 	this.start_time = params.start_time;
 	this.current_time = params.start_time;
 	this.end_time = params.end_time;
+	this.time_offset = params.time_offset;
 
 	this.chunk_start_time = params.start_time;
 	this.chunk_size = params.data_chunk_size;
@@ -18,8 +19,8 @@ function TaxiData(params){
 
 	this.data_url = params.data_url;
 
-	this.active_data = [];
-	this.next_set_of_data = [];
+	this.active_data = params.active_data;
+	this.next_set_of_data = params.next_set_of_data;
 
 	this.x_min = params.x_min;
 	this.x_max = params.x_max;
@@ -30,12 +31,9 @@ function TaxiData(params){
 	this.data_type;
 
 	this.enable_chart_drawing = false;
-	this.export_type = params.export_type;
-	this.progress_bar_id = params.progress_bar_id;
-	this.download_btn_id = params.download_btn_id;
+	this.callback = params.callback_fn;
+	this.update 	= params.update_fn;
 	this.export_data;
-
-	console.log('in constructor: ' + this.download_btn_id);
 
 	// These parameters are used only when drawing charts, and are 
 	// undefined otherwise
@@ -51,15 +49,28 @@ function TaxiData(params){
 		this.svg_height = params.svg_height;
 		this.svg_width = params.svg_width;
 
-		var x = d3.time.scale();
-		x.domain([new Date(params.chart_start_time*1000), new Date(params.chart_end_time*1000)])
+		var _this = this;
+		var scale_start_time = new Date(params.start_time*1000);
+		scale_start_time.setHours(scale_start_time.getHours()-scale_start_time.getTimezoneOffset()-_this.time_offset);
+		var scale_end_time = new Date(params.end_time*1000);
+		scale_end_time.setHours(scale_end_time.getHours()-scale_end_time.getTimezoneOffset()-_this.time_offset);
+		console.log(scale_start_time);
+		console.log(scale_end_time);
+		var x = d3.time.scale()
+		 .domain([scale_start_time,scale_end_time])
 		 .range([0,params.svg_width]);
-
 		var xAxis = d3.svg.axis().scale(x).ticks(d3.time.minutes, 60);
 
-		params.svg.append('g').call(xAxis);
+		_this.svg.append('g')
+			.call(xAxis);
+
+		var y = d3.scale.linear().domain([0,_this.max_value]).range([_this.svg_height,0]);
+		var yAxis = d3.svg.axis().scale(y).ticks(5).orient('right');
+
+		_this.svg_axis.append('g')
+			.call(yAxis);
 	}
-	
+
 	this.paused = false;
 
 }
@@ -116,9 +127,12 @@ TaxiData.prototype.chart_drawing_loop = function()
 		{
 			var pct = _this.percentage_progress(_this.current_time);
 			console.log("IN HERE " + pct);
+			_this.update(pct);
+			/*
 			d3.select('#'+_this.progress_bar_id).attr('aria-value-now',pct);
 			d3.select('#'+_this.progress_bar_id).style('width',pct+'%');
 			d3.select('#'+_this.progress_bar_id).text(pct+'%');
+			*/
 		}
 		_this.active_data = _this.next_set_of_data;	
 		_this.chunk_end_time = _this.chunk_end_time + _this.chunk_size;
@@ -144,25 +158,15 @@ TaxiData.prototype.chart_drawing_loop = function()
 				var draw_chart_promise = _this.draw_chart(_this.marker++,chart_data);
 				draw_chart_promise.then(function(msg){
 						if (_this.paused || _this.current_time >= _this.end_time)
-						{
-							console.log('Ended because ' + _this.paused + ' or ' + _this.current_time);
-
-						}
+							_this.callback();
 						else
-						{
 							return _this.chart_drawing_loop();
-						}
 					});
 			}
 			else
 			{
-				if (_this.paused || _this.current_time >= _this.end_time)
-				{
-					if (_this.export_type === 'json')
-						return _this.export_to_JSON();
-					else if (_this.export_type === 'csv')
-						return _this.export_to_CSV();
-				}
+				if ( _this.paused || _this.current_time >= _this.end_time)
+					_this.callback();
 				else
 					return _this.chart_drawing_loop();
 			}
@@ -170,50 +174,6 @@ TaxiData.prototype.chart_drawing_loop = function()
 	},0);
 }
 
-TaxiData.prototype.export_to_JSON = function(){
-	//var export_string = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(export_data));
-	var _this = this;
-	_this.export_data = JSON.stringify(_this.data_storage);
-	d3.select('#'+_this.download_btn_id).attr('disabled',null);
-}
-
-TaxiData.prototype.export_to_CSV = function(){
-	var _this = this;
-	//var export_string = 'data:text/csv;charset=utf-8,';
-
-	var export_string = '';
-	_this.data_storage[0].forEach(function(object){
-		var objectString = '';
-		for(var key in object) 
-		{
-			if(object.hasOwnProperty(key))
-				objectString = objectString + key + ',';
-		}
-		objectString = objectString.slice(0,-1);
-		export_string = export_string + objectString + '\n';
-	});
-
-	_this.data_storage.forEach(function(row){
-		row.forEach(function(object){
-			var objectString = '';
-			for(var key in object) 
-			{
-				if(object.hasOwnProperty(key))
-					objectString = objectString + object[key] + ',';
-			}
-			objectString = objectString.slice(0,-1);
-			export_string = export_string + objectString + '\n';
-		});
-	});
-	
-	_this.export_data = export_string;
-	console.log('hmmmm');
-	d3.select('#'+_this.download_btn_id).attr('disabled',null);
-	/*
-	var encodedUri = encodeURI(export_string);
-	window.open(encodedUri);
-	*/
-}
 
 
 TaxiData.prototype.build_graph = function(data)

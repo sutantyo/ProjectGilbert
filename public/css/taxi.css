@@ -100,3 +100,7 @@ select {
 };
 .progress{
 };
+
+.btn-default:focus{
+	background-color: red;
+}

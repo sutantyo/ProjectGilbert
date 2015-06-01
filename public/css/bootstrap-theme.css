@@ -55,12 +55,12 @@
 }
 .btn-default:hover,
 .btn-default:focus {
-  background-color: #e0e0e0;
+  background-color: #dad8ed;
   background-position: 0 -15px;
 }
 .btn-default:active,
 .btn-default.active {
-  background-color: #e0e0e0;
+  background-color: #dad8ed;
   border-color: #dbdbdb;
 }
 .btn-default.disabled,

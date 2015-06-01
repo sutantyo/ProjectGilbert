@@ -8,10 +8,11 @@ append content
 		// parameters specific to Taxi SF dataset:
 		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
 		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
-		// ... if the timestamp is GMT, then subtract 8 for SF
+		// ... the offset is -7 (due to daylight saving)
 
 		var min_time = 1211018404;
 		var max_time = 1213089934;
+		var time_offset = -7;
 
 		var chunk_size = 14400;
 		var data_collection_interval = 60;

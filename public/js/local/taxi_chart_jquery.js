@@ -110,21 +110,29 @@ $(document).ready(function(){
 															y_max: map_boundaries[1].y };
 		}
 
-		var UTC_start_time = ($('#chart-input-start-day').val() + ' ' + $('#chart-input-start-month').val() + ' ' + available_year
+
+		// Obtain time from the html 
+		//
+		// The process:
+		// Get time from html, convert it to UTC, i.e. subtract the offset from it
+		var start_time = ($('#chart-input-start-day').val() + ' ' + $('#chart-input-start-month').val() + ' ' + available_year
 											+ ' ' + $('#chart-input-start-time').val() + ' UTC');
-		UTC_start_time = new Date(UTC_start_time);
-		var UTC_end_time = ($('#chart-input-end-day').val() + ' ' + $('#chart-input-end-month').val() + ' ' + available_year
+		start_time = new Date(start_time);
+		start_time.setHours(start_time.getHours() - time_offset);
+		var end_time = ($('#chart-input-end-day').val() + ' ' + $('#chart-input-end-month').val() + ' ' + available_year
 											+ ' ' + $('#chart-input-end-time').val() + ' UTC');
-		UTC_end_time = new Date(UTC_end_time);
+		end_time = new Date(end_time);
+		end_time.setHours(end_time.getHours() - time_offset);
 
 		coverageRadius = $('#chart-input-radius').val();	
-		if (UTC_end_time <= UTC_start_time)
+		if (end_time <= start_time)
 			alert("Start time is greater than or equal to end time");
 		else
 		{
-			console.log("Generating chart data from " + UTC_start_time + ' to ' + UTC_end_time);
-			generate_taxi_chart(UTC_start_time.getTime()/1000,
-													UTC_end_time.getTime()/1000, 
+			console.log("Generating chart data from " + start_time + ' to ' + end_time);
+			generate_taxi_chart(start_time.getTime()/1000,
+													end_time.getTime()/1000, 
+													time_offset,
 													$('#chart-input-type').val(), 
 													$('#chart-input-radius').val(),
 													$('#chart-input-interval').val(),
@@ -143,12 +151,12 @@ $(document).ready(function(){
 
 });// end jquery
 
-function generate_taxi_chart(start_time, end_time,
+function generate_taxi_chart(start_time, end_time, time_offset,
 														 type, radius, interval, max_value,
 														 boundaries, custom_area_limits)
 {
 	var svg_height = 400;
-	var svg_width = (end_time-start_time)/interval + 200;
+	var svg_width = (end_time-start_time)/interval;
 
 	var chart_div = d3.select('#taxi-data');
 	var chart_svg_axis = chart_div.append('svg')
@@ -160,16 +168,25 @@ function generate_taxi_chart(start_time, end_time,
 		.attr('height',svg_height)
 		.attr('width',svg_width)
 
-	chart_svg_axis
-		.append('rect')
-		.attr({ height	: svg_height,
-					  width		: '200',
-						fill		: 'red',
-						opacity	: '0.1'})
+	var chart_drawer;
+	var callback = function(){
+		$('#taxi-save-svg').removeAttr('disabled','disabled');
+		$('#taxi-save-svg').click(function(){
+		//var svg_to_save = $('#svg-main').svg('get');
+		var svg_to_save = document.getElementById('svg-main');
+		svg_to_save = new XMLSerializer().serializeToString(svg_to_save);
+		var blob = new Blob([svg_to_save],{type:'image/svg+xml;charset=utf-8'});
+
+		saveAs(blob,'test.svg');
+		});
+		//var svg_to_save = new XMLSerializer().serializeToString($('#svg-main'));
+
+	}
 
 
 	chart_parameters = { start_time 			: start_time,
 											 end_time   			: end_time,
+											 time_offset   		: time_offset,
 											 type							: type,
 											 radius				    : parseInt(radius),
 											 interval					: parseInt(interval),
@@ -184,10 +201,11 @@ function generate_taxi_chart(start_time, end_time,
 											 svg_axis					: chart_svg_axis,
 											 svg_height				: svg_height,
 											 svg_width				: svg_width,
-											 draw							: true
+											 draw							: true,
+											 callback_fn			: callback
 										 };
 
-	var chart_drawer = new TaxiData(chart_parameters);
+	chart_drawer = new TaxiData(chart_parameters);
 
 	return new Promise (function(resolve,reject){
 		d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){

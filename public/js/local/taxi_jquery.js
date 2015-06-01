@@ -18,9 +18,9 @@ $(document).ready(function(){
 	});
 	
 	// Set default values
-	$('.start-time').val('10:00');
+	$('.start-time').val('03:00');
 	$('.start-time').selectpicker('render');
-	$('.end-time').val('11:00');
+	$('.end-time').val('04:00');
 	$('.end-time').selectpicker('render');
 	$('.default-sw-coord-x').val(map_boundaries[3].x);
 	$('.default-sw-coord-y').val(map_boundaries[3].y);
