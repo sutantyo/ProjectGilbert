@@ -18,10 +18,14 @@ $(document).ready(function(){
 	});
 	
 	// Set default values
-	$('.start-time').val('03:00');
+	$('.start-time').val('07:00');
 	$('.start-time').selectpicker('render');
-	$('.end-time').val('04:00');
+	$('.end-time').val('08:00');
 	$('.end-time').selectpicker('render');
+	$('.start-day').val('20');
+	$('.start-day').selectpicker('render');
+	$('.end-day').val('20');
+	$('.end-day').selectpicker('render');
 	$('.default-sw-coord-x').val(map_boundaries[3].x);
 	$('.default-sw-coord-y').val(map_boundaries[3].y);
 	$('.default-ne-coord-x').val(map_boundaries[1].x);

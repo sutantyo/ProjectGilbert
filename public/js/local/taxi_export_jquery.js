@@ -175,7 +175,7 @@ $(document).ready(function(){
 											});
 		export_div.appendTo('#taxi-data-results');
 		var title_and_progress_div = $('<div></div>',{
-													'class':'col-md-9 col-sm-9 col-xs-12'
+													'class':'col-md-8 col-sm-8 col-xs-12'
 												});
 		title_and_progress_div.appendTo(export_div);
 		var title_div = $('<div></div>',{
@@ -208,12 +208,24 @@ $(document).ready(function(){
 													'text':'CSV'
 												});
 		csv_dl_button.appendTo(export_div);
-		var reset_button = $('<div></div>',{
+		var draw_button = $('<div></div>',{
 													'class':'col-md-1 col-sm-1 col-xs-4 button btn btn-default',
 													'disabled':'disabled',
 												});
-		reset_button.appendTo(export_div);
-		$('<span></span>',{'class':'glyphicon glyphicon-remove'}).appendTo(reset_button);
+		draw_button.appendTo(export_div);
+		$('<span></span>',{'class':'glyphicon glyphicon-picture'}).appendTo(draw_button);
+		var remove_button = $('<div></div>',{
+													'class':'col-md-1 col-sm-1 col-xs-4 button btn btn-default',
+													'disabled':'disabled',
+												});
+		remove_button.appendTo(export_div);
+		$('<span></span>',{'class':'glyphicon glyphicon-remove'}).appendTo(remove_button);
+
+		var chart_id = type + (new Date).getTime();
+		console.log(chart_id);
+		var chart_div = $('<div></div>',{
+													'id':chart_id
+												});
 
 		// Set the parameters for custom area (if using)
 		var callback = function(){
@@ -227,8 +239,13 @@ $(document).ready(function(){
 				var blob = new Blob([export_data],{type:'file/csv'},title);
 				saveAs(blob,title+'.csv');
 			});
+			draw_button.click(function(){
+				chart_div.appendTo(export_div);
+				export_controller.draw_from_data(chart_id,300);
+			});
 			json_dl_button.removeAttr('disabled','disabled');
 			csv_dl_button.removeAttr('disabled','disabled');
+			draw_button.removeAttr('disabled','disabled');
 		}
 
 		var update = function(pct_completed){
@@ -257,8 +274,8 @@ $(document).ready(function(){
 		var export_controller = new TaxiData(export_parameters);
 		export_controller.start();
 
-		reset_button.removeAttr('disabled','disabled');
-		reset_button.click(function(){
+		remove_button.removeAttr('disabled','disabled');
+		remove_button.click(function(){
 			export_controller.stop();
 			delete export_controller;
 			export_div.remove();

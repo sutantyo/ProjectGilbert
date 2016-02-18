@@ -23,7 +23,7 @@ html,body,#taxi-anim {
 }
 
 #taxi-data{
-	height: 440px;
+	height: 420px;
   width: 100%;
 	overflow: scroll;
 }

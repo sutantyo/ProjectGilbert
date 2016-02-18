@@ -163,18 +163,25 @@ $(document).ready(function(){
 
 
 		// Construct UNIX epoch time for start and end times 
-		var UTC_start_time = ($('#map-input-start-day').val() + ' ' + $('#map-input-start-month').val() + ' ' + available_year
+		var start_time = ($('#map-input-start-day').val() + ' ' + $('#map-input-start-month').val() + ' ' + available_year
 											+ ' ' + $('#map-input-start-time').val() + ' UTC');
-		UTC_start_time = new Date(UTC_start_time);
-		UTC_start_time = UTC_start_time.getTime()/1000;
-		var UTC_end_time = ($('#map-input-end-day').val() + ' ' + $('#map-input-end-month').val() + ' ' + available_year
+		start_time = new Date(start_time);
+		console.log(start_time);
+		start_time.setHours(start_time.getHours() - time_offset);
+		console.log(start_time);
+		start_time = start_time.getTime()/1000;
+		var end_time = ($('#map-input-end-day').val() + ' ' + $('#map-input-end-month').val() + ' ' + available_year
 											+ ' ' + $('#map-input-end-time').val() + ' UTC');
-		UTC_end_time = new Date(UTC_end_time);
-		UTC_end_time = UTC_end_time.getTime()/1000;
+		end_time = new Date(end_time);
+		console.log(end_time);
+		end_time.setHours(end_time.getHours() - time_offset);
+		console.log(end_time);
+		end_time = end_time.getTime()/1000;
+
 
 
 		// Sanity check
-		if (UTC_end_time <= UTC_start_time)
+		if (end_time <= start_time)
 		{
 			alert("Start time is greater than or equal to end time");
 			$('.map-input').removeAttr('disabled','disabled');
@@ -183,9 +190,9 @@ $(document).ready(function(){
 		else
 		{
 			animation_controller = null;
-			console.log("Generating map animation from " + UTC_start_time + ' to ' + UTC_end_time);
-			generate_taxi_animation(UTC_start_time,
-															UTC_end_time,
+			console.log("Generating map animation from " + start_time + ' to ' + end_time);
+			generate_taxi_animation(start_time,
+															end_time,
 															$('#map-input-radius').val(),
 															$('#map-input-interval').val(),
 															map_boundaries,

@@ -1,6 +1,6 @@
 
-function TaxiData(params){
-
+function TaxiData(params)
+{
 	console.log("created new TaxiData");
 
 	this.start_time = params.start_time;
@@ -47,6 +47,7 @@ function TaxiData(params){
 		this.svg = params.svg;
 		this.svg_axis = params.svg_axis;
 		this.svg_height = params.svg_height;
+		this.svg_top_offset = params.svg_top_offset;
 		this.svg_width = params.svg_width;
 
 		var _this = this;
@@ -92,7 +93,6 @@ TaxiData.prototype.percentage_progress = function(current_time)
 	return d3.scale.linear().domain([_this.start_time,_this.end_time]).rangeRound([0,100])(current_time);
 }
 
-
 TaxiData.prototype.chart_drawing_loop = function()
 {
 	var _this = this;
@@ -104,7 +104,8 @@ TaxiData.prototype.chart_drawing_loop = function()
 	// ... Once a datum's time is greater than (current_time+interval), break, and splice
 	// ... the data that has extracted so far
 	var current_batch = [];
-	for (var i = 0; i < _this.active_data.length; i++)
+	var i = 0;
+	while (i < _this.active_data.length)
 	{
 		if (_this.active_data[i].time < (_this.current_time + _this.interval))
 			current_batch.push(_this.active_data[i]);
@@ -113,8 +114,11 @@ TaxiData.prototype.chart_drawing_loop = function()
 			_this.active_data.splice(0,i);
 			break;
 		}
+		i++;
 	}
-
+	if (i === _this.active_data.length)
+		_this.active_data = [];
+	
 	// Increment the time
 	_this.current_time = _this.current_time + _this.interval;
 
@@ -122,17 +126,10 @@ TaxiData.prototype.chart_drawing_loop = function()
 	// then replace the (next_set_of_data) with a d3.json call
 	if (_this.current_time === _this.chunk_end_time)
 	{
-		console.log("Test: " + _this.percentage_progress(_this.current_time));
 		if(_this.enable_chart_drawing === false)
 		{
 			var pct = _this.percentage_progress(_this.current_time);
-			console.log("IN HERE " + pct);
 			_this.update(pct);
-			/*
-			d3.select('#'+_this.progress_bar_id).attr('aria-value-now',pct);
-			d3.select('#'+_this.progress_bar_id).style('width',pct+'%');
-			d3.select('#'+_this.progress_bar_id).text(pct+'%');
-			*/
 		}
 		_this.active_data = _this.next_set_of_data;	
 		_this.chunk_end_time = _this.chunk_end_time + _this.chunk_size;
@@ -142,7 +139,9 @@ TaxiData.prototype.chart_drawing_loop = function()
 				return;
 			}
 			else
+			{
 				_this.next_set_of_data = data;
+			}
 		});
 	}
 
@@ -155,7 +154,8 @@ TaxiData.prototype.chart_drawing_loop = function()
 		graph_promise.then(function(chart_data){
 			if (_this.enable_chart_drawing)	
 			{
-				var draw_chart_promise = _this.draw_chart(_this.marker++,chart_data);
+				_this.marker = _this.marker + 1;
+				var draw_chart_promise = _this.draw_chart(_this.marker,chart_data);
 				draw_chart_promise.then(function(msg){
 						if (_this.paused || _this.current_time >= _this.end_time)
 							_this.callback();
@@ -175,7 +175,6 @@ TaxiData.prototype.chart_drawing_loop = function()
 }
 
 
-
 TaxiData.prototype.build_graph = function(data)
 {
 	var a = performance.now();
@@ -187,7 +186,7 @@ TaxiData.prototype.build_graph = function(data)
 	var radius = _this.radius;
 
 
-	data.forEach(function(datum){
+	data.forEach(function(datum){ 
 		if ( _this.x_min <= datum.x && datum.x <= _this.x_max &&
 				 _this.y_min <= datum.y && datum.y <= _this.y_max)
 		{
@@ -200,6 +199,11 @@ TaxiData.prototype.build_graph = function(data)
 	});
 	graph.find_neighbours(radius);
 
+	/*
+	graph.nodes.forEach(function(node){
+		console.log(node.neighbours.length);
+	});
+	*/
 
 	// There are two types of data we are interested in:
 	// ... 1. Mean-median with percentiles (25th, 75th, max value), e.g. for degrees, diameters. 
@@ -248,14 +252,20 @@ TaxiData.prototype.build_graph = function(data)
 	{
 		_this.data_type = 'count_type';
 		graph.build_components();
-		chart_data.push({count: graph.components.length});
+		chart_data.push({
+			time : _this.current_time,
+			count: graph.components.length
+		});
 	}
 	else if (type === 'no_of_triangles')
 	{
 		_this.data_type = 'count_type';
 		graph.build_components();
 		graph.build_triangles();
-		chart_data.push({count: graph.triangles.length});
+		chart_data.push({
+			time : _this.current_time,
+			count: graph.triangles.length
+		});
 	}
 	else
 	{
@@ -265,17 +275,25 @@ TaxiData.prototype.build_graph = function(data)
 
 	if (_this.data_type === 'quartile_type')
 	{
-		collected_data.sort(function(a,b){return a-b});
+		if (collected_data.length < 1)
+			collected_data.push(0);
+		else
+			collected_data.sort(function(a,b){return a-b});
+
+		//console.log(collected_data);
+		var quartiles = find_quartiles(collected_data,false)
+
 		chart_data.push({
-			 pctl25 : collected_data[Math.round(collected_data.length/4)],
-			 pctl50 : collected_data[Math.round(collected_data.length/2)],
-			 pctl75 : collected_data[Math.round(3 * collected_data.length/4)],
+			 time   : _this.current_time,
+			 pctl25 : quartiles.pctl25,
+			 pctl50 : quartiles.pctl50,
+			 pctl75 : quartiles.pctl75,
 			 pctl100: collected_data[collected_data.length-1],
 			 mean		: collected_data_average/collected_data.length
 		});
 	}
 
-	_this.data_storage.push(chart_data);	
+	_this.data_storage.push(chart_data[0]);	
 	return new Promise( function(resolve,reject){
 		resolve(chart_data);
 	});
@@ -287,10 +305,42 @@ TaxiData.prototype.scalingFn = function(x)
 }
 
 
+TaxiData.prototype.draw_from_data = function(divname,height)
+{
+	var _this = this;
+	_this.svg_height = height;
+
+	chart_div = d3.select('#'+divname);
+	var chart_svg = chart_div.append('svg')
+		.attr('height',height)
+		.attr('width',_this.data_storage.length)	
+
+	_this.max_value = 0;
+	for (var i = 0; i < _this.data_storage.length; i++)
+	{
+		if (_this.data_storage[i].pctl100 > _this.max_value)
+			_this.max_value = _this.data_storage[i].pctl100;
+	}
+
+	console.log(_this.max_value);
+
+	chart_svg.selectAll('rect').data(_this.data_storage).enter().append('rect')
+		.attr({
+			x: 	function(d,i){return i},
+			y:	function(d){return _this.svg_height - _this.scalingFn(d.pctl100) },
+			width: 1,
+			height: function(d){return _this.scalingFn(d.pctl100)},
+			fill: '#7f3f3d'
+		});
+}
+
 TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 {
 	var _this = this;
 	var enterSelection = _this.svg.append('g').selectAll('rect').data(chart_data).enter();
+
+
+
 	var width = 1;
 
 	if (_this.data_type === 'quartile_type')
@@ -299,7 +349,8 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl25))},
+				y:		function(d) 
+					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl25),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl25)},
 				fill: '#7f3fed'
@@ -308,7 +359,8 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl50))},
+				y:		function(d) 
+					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl50),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl50) - _this.scalingFn(d.pctl25)},
 				fill: '#7db8ec'
@@ -317,25 +369,33 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl75))},
+				y:		function(d) 
+					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl75),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl75)-_this.scalingFn(d.pctl50)},
 				fill: '#a77eed'
 			});
+		var div = d3.select('#taxi-chart').append("div")   
+			.attr('class', 'tooltip')               
+			.style("opacity", 0);
 		enterSelection
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.pctl100))},
+				y:		function(d) {
+					//console.log('y: ' + Math.max(_this.svg_height + _this.scalingFn(d.pctl100),_this.svg_top_offset));
+					return (Math.max(_this.svg_height - _this.scalingFn(d.pctl100), _this.svg_top_offset))},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl100)-_this.scalingFn(d.pctl75)},
 				fill: '#b0d0ec'
 			});
+
+
 		enterSelection
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.mean))},
+				y:		function(d) {return (_this.svg_height + _this.svg_top_offset - _this.scalingFn(d.mean))},
 				width: width,
 				height: function(d,i){return 1},
 				fill: 'red'
@@ -347,7 +407,7 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) {return (_this.svg_height - _this.scalingFn(d.count))},
+				y:		function(d) {return (_this.svg_height + _this.svg_top_offset - _this.scalingFn(d.count))},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.count)},
 				fill: '#b0d0ec'
@@ -360,4 +420,38 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 	});
 }
 
+function find_quartiles(array,stop)
+{
+	var pctl25, pctl50, pctl75, n;
+
+	if (array.length === 1)
+		return {pctl25: array[0], pctl50: array[0], pctl75: array[0]};
+
+	if (array.length % 2 === 0)
+	{
+		n = (array.length-2)/2;
+		pctl50 = (array[n] + array[n+1])/2;
+		if (!stop)
+		{
+		  pctl25 = find_quartiles(array.slice(0,n+1),true);
+		  pctl75 = find_quartiles(array.slice(n+1,array.length),true);
+			return {pctl25: pctl25, pctl50: pctl50, pctl75: pctl75};
+		}
+		else
+			return pctl50;
+	}
+	else
+	{
+		n = (array.length-1)/2;
+		pctl50 = (array[n]);
+		if (!stop)
+		{
+		  pctl25 = find_quartiles(array.slice(0,n),true);
+		  pctl75 = find_quartiles(array.slice(n+1,array.length),true);
+			return {pctl25: pctl25, pctl50: pctl50, pctl75: pctl75};
+		}
+		else
+			return pctl50;
+	}
+}
 

@@ -3,7 +3,8 @@ $(document).ready(function(){
 	var chart_controller;
 	var chart_using_custom_area = false;
 
-	$('#chart-input-start-month').change(function(){
+	$('#chart-input-start-month').change(function()
+	{
 		var _this = $(this);
 		available_dates.forEach(function(dates){
 			if (dates.month === _this.val())
@@ -31,7 +32,6 @@ $(document).ready(function(){
 			}
 		});
 	});
-
 	$('#chart-button-custom-area').click(function(){
 		var _this = this;
 		if ($(_this).hasClass('clicked'))
@@ -45,7 +45,6 @@ $(document).ready(function(){
 			$(_this).addClass('clicked');
 		}
 	});
-
 	$('#chart-start-button').click(function(){
 		if (chart_controller)
 		{
@@ -57,7 +56,6 @@ $(document).ready(function(){
 		else 
 			alert('Error: chart not generated yet');
 	});
-
 	$('#chart-stop-button').click(function(){
 		if (chart_controller)
 		{
@@ -80,7 +78,6 @@ $(document).ready(function(){
 		else
 			alert ('It seems that you ran into a bug, please reload the page');
 	});
-
 	$('#chart-reset-button').click(function(){
 			d3.select('#taxi-data').select('#svg-main').remove();
 			d3.select('#taxi-data').select('#svg-axis').remove();
@@ -90,7 +87,6 @@ $(document).ready(function(){
 			$('#chart-reset-button').hide();
 			chart_controller = null;
 	});
-
 	$('#chart-generate-button').click(function(){
 
 		$('.chart-input').attr('disabled','disabled');
@@ -147,8 +143,6 @@ $(document).ready(function(){
 				});
 		}
 	});
-
-
 });// end jquery
 
 function generate_taxi_chart(start_time, end_time, time_offset,
@@ -156,7 +150,8 @@ function generate_taxi_chart(start_time, end_time, time_offset,
 														 boundaries, custom_area_limits)
 {
 	var svg_height = 400;
-	var svg_width = (end_time-start_time)/interval;
+	var svg_width = (end_time-start_time)/interval*1;
+	var svg_top_offset = 20;
 
 	var chart_div = d3.select('#taxi-data');
 	var chart_svg_axis = chart_div.append('svg')
@@ -183,7 +178,6 @@ function generate_taxi_chart(start_time, end_time, time_offset,
 
 	}
 
-
 	chart_parameters = { start_time 			: start_time,
 											 end_time   			: end_time,
 											 time_offset   		: time_offset,
@@ -201,6 +195,7 @@ function generate_taxi_chart(start_time, end_time, time_offset,
 											 svg_axis					: chart_svg_axis,
 											 svg_height				: svg_height,
 											 svg_width				: svg_width,
+											 svg_top_offset		: svg_top_offset,
 											 draw							: true,
 											 callback_fn			: callback
 										 };

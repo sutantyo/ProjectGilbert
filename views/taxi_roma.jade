@@ -9,15 +9,17 @@ append content
 		// ... the earliest timestamp is 1391212800, 
 		// ... the latest timestamp is 1393804798,
 
+		var min_time = 1391212800;
+		var max_time = 1393804798;
+		var time_offset = +2;
 		// boundary points for our svg
-		var default_boundaries = [  {id : 'NW', x: 42.23961, y: 12.04925},
-																{id : 'NE', x: 42.23961, y: 12.85368},
-																{id : 'SE', x: 41.65899, y: 12.85368},
-																{id : 'SW', x: 41.65899, y: 12.04925} ];
+		var map_boundaries = [  {id : 'NW', x: 42.23961, y: 12.04925},
+														{id : 'NE', x: 42.23961, y: 12.85368},
+														{id : 'SE', x: 41.65899, y: 12.85368},
+														{id : 'SW', x: 41.65899, y: 12.04925} ];
 
 
 		// boundary points for our svg
-
 		var available_year = 2014;
 		var available_dates = [  {month: 'February',  min_date: '1', max_date: '28'},
 														 {month: 'March', min_date: '1',  max_date: '2'} ];
@@ -36,103 +38,26 @@ append content
 		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
 		map.setOptions({styles: styles});
 
+		google.maps.event.addListener(map, "rightclick", function(event) {
+				var lat = event.latLng.lat();
+				var lng = event.latLng.lng();
+				// populate yor box/field with lat, lng
+				alert("Lat=" + lat + "; Lng=" + lng);
+		});
+		var styles = [ {stylers: [{ hue: '#e0dce8' }, { saturation: -60 }, { lightness: 60}] }];
+		map.setOptions({styles: styles});
+
 
 		var data_url = '/dataset/taxi_roma_epoch/';
 		var data_chunk_size = 3600;
 
 
-		function generate_taxi_animation(start_time,end_time,radius,interval)
-		{
-
-			var overlay = new OverlayView();
-			overlay.setTransitionTime(1000);
-			overlay.setBoundaries(boundaries);
-			overlay.setMap(map);
-
-			// Set some parameters for the overlay animation (e.g. transition time), 
-			// these methods are in our inherited class
-			animation_parameters = { animation_start_time : start_time, 
-															 animation_end_time		: end_time,
-															 animation_step				: parseInt(interval),
-															 data_url							: data_url,
-															 data_chunk						: data_chunk_size,
-															 radius								: radius
-														};	
-			var anim = new TaxiAnimation(overlay, animation_parameters);
-			//anim.animation_loop();
 
 
-			return new Promise (function(resolve,reject){
-				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
-					if (error) reject('Error getting initial data' + error);
-					else
-					{
-						anim.active_data = data;
-						if (start_time+data_chunk_size <= end_time)
-						{
-							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
-								if (error) reject('Error getting initial data' + error);
-								else
-								{
-									anim.next_set_of_data = data;
-									resolve(anim);
-								}
-							});
-						}
-						else
-						{
-							resolve(anim);
-						}
-					}
-				});
-			});
-		}
 
-		function generate_taxi_chart(start_time,end_time,type,radius,interval,max_value)
-		{
 
-			var chart_div = d3.select('#taxi-data');
-			var chart_svg = chart_div.append('svg')
-				.attr('height',400)
-				.attr('width',function(){return (end_time-start_time)/interval + 200;});
 
-			chart_parameters = { chart_start_time : start_time,
-													 chart_end_time   : end_time,
-													 chart_interval   : parseInt(interval),
-													 chart_type				: type,
-													 chart_radius     : parseInt(radius),
-													 data_url					: data_url,
-													 data_chunk_size  : data_chunk_size,
-													 data_max_value   : parseInt(max_value),
-													 svg 							: chart_svg,
-													 svg_height				: 400
-												 };
+		//
+		// Create a map centered in San Fransisco
 
-			var chart_drawer = new TaxiChartDrawer(chart_parameters);
 
-			return new Promise (function(resolve,reject){
-				d3.json(data_url + 'time?start=' + start_time + '&end=' + (start_time+data_chunk_size), function(error,data){
-					if (error) reject('Error getting initial data' + error);
-					else
-					{
-						chart_drawer.active_data = data;
-						if (start_time+data_chunk_size <= end_time)
-						{
-							d3.json(data_url + 'time?start=' + (start_time+data_chunk_size) + '&end=' + (start_time+2*data_chunk_size), function(error,data){
-								if (error) reject('Error getting initial data' + error);
-								else
-								{
-									chart_drawer.next_set_of_data = data;
-									resolve(chart_drawer);
-								}
-							});
-						}
-						else
-						{
-							resolve(chart_drawer);
-						}
-					}
-				});
-			});	
-
-		}
