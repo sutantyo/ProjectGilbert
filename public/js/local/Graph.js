@@ -8,16 +8,16 @@ function Graph(){
 		// Find the distance (in metres) between two coordinates on the map
 Graph.convertLLtoM = function(lat1, lon1, lat2, lon2) {
 	var R = 6378.137
-	var a = 
-		 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 + 
-		 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+	var a =
+		 0.5 - Math.cos((lat2 - lat1) * Math.PI / 180)/2 +
+		 Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
 		 (1 - Math.cos((lon2 - lon1) * Math.PI / 180))/2;
 
 	return 1000 * R * 2 * Math.asin(Math.sqrt(a));
 }
 
 		// Convert a distance in metres into change in longitudinal coordinate
-		// 
+		//
 		// We are doing something very lazy here: at the equator, 1 longitudinal degree
 		// is roughly 111,320 metres, so conversely, 1 metre is about 0.0000089831118
 Graph.convertMtoLL = function(m){
@@ -29,8 +29,8 @@ Graph.prototype.sort_nodes = function()
 	nodes.sort(function(a,b){return a-b});
 }
 
-// Given a graph, go through the set of nodes, and for each node, see if there 
-// are any other nodes located within the radius 
+// Given a graph, go through the set of nodes, and for each node, see if there
+// are any other nodes located within the radius
 Graph.prototype.find_neighbours = function(radius)
 {
 			for (var i = 0; i < this.nodes.length; i++)
@@ -60,7 +60,7 @@ Graph.prototype.find_neighbours_and_edges = function(radius)
 							if (this.nodes[i].id < this.nodes[j].id)
 							{
 								this.edges.push({id: this.nodes[i].id + '-' + this.nodes[j].id,
-																	 origin: this.nodes[i], 
+																	 origin: this.nodes[i],
 																	 dest: this.nodes[j],
 																	 path: [{x: this.nodes[i].x, y: this.nodes[i].y},
 																					{x: this.nodes[j].x, y: this.nodes[j].y}]});
@@ -75,7 +75,7 @@ Graph.prototype.find_neighbours_and_edges = function(radius)
 
 Graph.prototype.build_triangles = function()
 /* Go through the graph and populate the array 'this.triangles' with arrays of nodes that
- * form a triangle. 
+ * form a triangle.
  * We use the node-iterator algorithm as described by Algorithm 1 in
  *   Schank, Wagner - Finding, counting and listing all triangles in large graphs, an experimental study
  */
@@ -83,7 +83,7 @@ Graph.prototype.build_triangles = function()
 	var a = performance.now();
 	var _this = this;
 	if (_this.nodes.length === 0)
-		return 
+		return
 	else if (_this.components.length === 0)
 		_this.build_components();
 
@@ -119,13 +119,13 @@ Graph.prototype.build_triangles = function()
 							});
 						});
 
-						neighbours[component[i].neighbours[j].id].push(component[i]);	
+						neighbours[component[i].neighbours[j].id].push(component[i]);
 					}
 				}
 			}
 		}
 	});
-	//console.log(this.triangles.length);	
+	//console.log(this.triangles.length);
 	//console.log('Time taken: ' + (performance.now()-a));
 }
 
@@ -156,7 +156,7 @@ Graph.prototype.build_components = function()
 			// start the BFS traversal
 			var queue = [];
 			queue.push(this.nodes[i]);
-			inspected_nodes.push(this.nodes[i]);	
+			inspected_nodes.push(this.nodes[i]);
 			while (queue.length > 0)
 			{
 				var q_head = queue.shift();
@@ -182,18 +182,18 @@ Graph.prototype.build_components = function()
 
 					// find the diameter of the component
 					// from q_head, the last node, do another BFS
-					// ... we re-use the queue (since it is now empty), 
+					// ... we re-use the queue (since it is now empty),
 					// ... but need a new array to mark the inspected nodes
-					if (current_component.length == 1)	
+					if (current_component.length == 1)
 						current_component.diameter = 0;
 					else
 					{
 						var diameter_inspected_nodes = [];
 						var diameter = -1;
-					
+
 						queue.push([q_head]);
 						diameter_inspected_nodes.push(q_head);
-						
+
 						while(queue.length > 0)
 						{
 							diameter++;
@@ -214,7 +214,7 @@ Graph.prototype.build_components = function()
 
 							if (queue.length == 0)
 								current_component.diameter = diameter;
-						}	
+						}
 					}
 				}
 			}
