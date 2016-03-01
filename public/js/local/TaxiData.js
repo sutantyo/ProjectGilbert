@@ -26,7 +26,7 @@ function TaxiData(params)
 	this.x_max = params.x_max;
 	this.y_min = params.y_min;
 	this.y_max = params.y_max;
-	
+
 	this.data_storage = [];
 	this.data_type;
 
@@ -35,13 +35,13 @@ function TaxiData(params)
 	this.update 	= params.update_fn;
 	this.export_data;
 
-	// These parameters are used only when drawing charts, and are 
+	// These parameters are used only when drawing charts, and are
 	// undefined otherwise
 	if (params.draw === true)
 	{
 		this.enable_chart_drawing = true;
-		this.max_value = params.data_max_value;
 
+		this.max_value = params.data_max_value;
 		this.marker = 0;
 
 		this.svg = params.svg;
@@ -52,6 +52,7 @@ function TaxiData(params)
 
 		var _this = this;
 		var scale_start_time = new Date(params.start_time*1000);
+		console.log('DEBUG ' + scale_start_time.getHours());
 		scale_start_time.setHours(scale_start_time.getHours()-scale_start_time.getTimezoneOffset()-_this.time_offset);
 		var scale_end_time = new Date(params.end_time*1000);
 		scale_end_time.setHours(scale_end_time.getHours()-scale_end_time.getTimezoneOffset()-_this.time_offset);
@@ -66,7 +67,7 @@ function TaxiData(params)
 			.call(xAxis);
 
 		var y = d3.scale.linear().domain([0,_this.max_value]).range([_this.svg_height,0]);
-		var yAxis = d3.svg.axis().scale(y).ticks(5).orient('right');
+		var yAxis = d3.svg.axis().scale(y).ticks(5).orient('left');
 
 		_this.svg_axis.append('g')
 			.call(yAxis);
@@ -100,7 +101,7 @@ TaxiData.prototype.chart_drawing_loop = function()
 	// Extract the data between (current_time) and (current_time+interval):
 	// ... Start from the beginning of (active_data) array until the datum's time is
 	// ... greater than (current_time+interval), pushing each datum into the current_batch
-	// ... array. 
+	// ... array.
 	// ... Once a datum's time is greater than (current_time+interval), break, and splice
 	// ... the data that has extracted so far
 	var current_batch = [];
@@ -118,7 +119,7 @@ TaxiData.prototype.chart_drawing_loop = function()
 	}
 	if (i === _this.active_data.length)
 		_this.active_data = [];
-	
+
 	// Increment the time
 	_this.current_time = _this.current_time + _this.interval;
 
@@ -131,7 +132,7 @@ TaxiData.prototype.chart_drawing_loop = function()
 			var pct = _this.percentage_progress(_this.current_time);
 			_this.update(pct);
 		}
-		_this.active_data = _this.next_set_of_data;	
+		_this.active_data = _this.next_set_of_data;
 		_this.chunk_end_time = _this.chunk_end_time + _this.chunk_size;
 		d3.json(_this.data_url + 'time?start=' + (_this.current_time+_this.chunk_size) + '&end=' + (_this.current_time+2*_this.chunk_size), function(error,data){
 			if (error){
@@ -148,11 +149,11 @@ TaxiData.prototype.chart_drawing_loop = function()
 	// Use setTimeout to ensure this process do not 'freeze' the browser
 	setTimeout(function(){
 		// Construct the graph, and wait until it returns the graph, then
-		// process the graph to 
+		// process the graph to
 		var graph_promise;
 		graph_promise = _this.build_graph(current_batch);
 		graph_promise.then(function(chart_data){
-			if (_this.enable_chart_drawing)	
+			if (_this.enable_chart_drawing)
 			{
 				_this.marker = _this.marker + 1;
 				var draw_chart_promise = _this.draw_chart(_this.marker,chart_data);
@@ -170,7 +171,7 @@ TaxiData.prototype.chart_drawing_loop = function()
 				else
 					return _this.chart_drawing_loop();
 			}
-		});	
+		});
 	},0);
 }
 
@@ -186,7 +187,7 @@ TaxiData.prototype.build_graph = function(data)
 	var radius = _this.radius;
 
 
-	data.forEach(function(datum){ 
+	data.forEach(function(datum){
 		if ( _this.x_min <= datum.x && datum.x <= _this.x_max &&
 				 _this.y_min <= datum.y && datum.y <= _this.y_max)
 		{
@@ -206,23 +207,23 @@ TaxiData.prototype.build_graph = function(data)
 	*/
 
 	// There are two types of data we are interested in:
-	// ... 1. Mean-median with percentiles (25th, 75th, max value), e.g. for degrees, diameters. 
+	// ... 1. Mean-median with percentiles (25th, 75th, max value), e.g. for degrees, diameters.
 	// ...    Let us call this the mean-median type.
-	// ... 2. Total count, e.g for number of triangles, and number of components. 
+	// ... 2. Total count, e.g for number of triangles, and number of components.
 	// ...    Let us call this the counting type.
-	// ... Therefore we separate the data collection process depending on the type of data that 
-	// ... we are going to process. 
+	// ... Therefore we separate the data collection process depending on the type of data that
+	// ... we are going to process.
 	// ...
 	// ... If you want to add a new type of data to process, then see if you can generalise it to fit
-	// ... into one of the two types, or simply make a new one if you can't. 
-	// ... The idea is to extract data from the graph and put it inside (collected_data) 
+	// ... into one of the two types, or simply make a new one if you can't.
+	// ... The idea is to extract data from the graph and put it inside (collected_data)
 	// ... FINISH THIS
 
 	var collected_data = [];
 	var collected_data_average = 0;
 	var chart_data = [];
 
-	if (type === 'degrees')	
+	if (type === 'degrees')
 	{
 		_this.data_type = 'quartile_type';
 		graph.nodes.forEach(function(node){
@@ -293,7 +294,7 @@ TaxiData.prototype.build_graph = function(data)
 		});
 	}
 
-	_this.data_storage.push(chart_data[0]);	
+	_this.data_storage.push(chart_data[0]);
 	return new Promise( function(resolve,reject){
 		resolve(chart_data);
 	});
@@ -313,7 +314,7 @@ TaxiData.prototype.draw_from_data = function(divname,height)
 	chart_div = d3.select('#'+divname);
 	var chart_svg = chart_div.append('svg')
 		.attr('height',height)
-		.attr('width',_this.data_storage.length)	
+		.attr('width',_this.data_storage.length)
 
 	_this.max_value = 0;
 	for (var i = 0; i < _this.data_storage.length; i++)
@@ -345,21 +346,21 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 
 	if (_this.data_type === 'quartile_type')
 	{
-		enterSelection	
+		enterSelection
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) 
+				y:		function(d)
 					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl25),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl25)},
 				fill: '#7f3fed'
 			});
-		enterSelection	
+		enterSelection
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) 
+				y:		function(d)
 					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl50),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl50) - _this.scalingFn(d.pctl25)},
@@ -369,14 +370,14 @@ TaxiData.prototype.draw_chart = function(draw_marker,chart_data)
 			.append('rect')
 			.attr({
 				x:		function(d,i) { return draw_marker; },
-				y:		function(d) 
+				y:		function(d)
 					{return Math.max(_this.svg_height-_this.scalingFn(d.pctl75),_this.svg_top_offset)},
 				width: width,
 				height: function(d,i){return _this.scalingFn(d.pctl75)-_this.scalingFn(d.pctl50)},
 				fill: '#a77eed'
 			});
-		var div = d3.select('#taxi-chart').append("div")   
-			.attr('class', 'tooltip')               
+		var div = d3.select('#taxi-chart').append("div")
+			.attr('class', 'tooltip')
 			.style("opacity", 0);
 		enterSelection
 			.append('rect')
@@ -454,4 +455,3 @@ function find_quartiles(array,stop)
 			return pctl50;
 	}
 }
-

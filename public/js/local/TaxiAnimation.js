@@ -46,7 +46,7 @@ TaxiAnimation.prototype.animation_loop = function()
 	_this.current_time = _this.current_time + _this.animation_step;
 	if (_this.current_time === _this.chunk_end_time)
 	{
-		_this.active_data = _this.next_set_of_data;	
+		_this.active_data = _this.next_set_of_data;
 		d3.json(_this.data_url + 'time?start=' + (_this.current_time+_this.chunk_size) + '&end=' + (_this.current_time+2*_this.chunk_size), function(error,data){
 			if (error){
 				alert('Error obtaining data from ' + start_time + ' to ' + end_time);
@@ -62,7 +62,7 @@ TaxiAnimation.prototype.animation_loop = function()
 
 	//setTimeout(function(){
 		_this.build_graph().then(function(returned_graph){
-			var ct = new Date(_this.current_time*1000); 
+			var ct = new Date(_this.current_time*1000);
 			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-4));
 			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
 			animation_promise
@@ -97,7 +97,7 @@ TaxiAnimation.prototype.build_graph = function()
 			if (_duplicate_check[datum.id] !== 1)
 			{
 				_duplicate_check[datum.id] = 1;
-				if (_this.infected[datum.id] === true)		
+				if (_this.infected[datum.id] === true)
 				{
 					graph.nodes.push({id: datum.id, x: Number(datum.x), y: Number(datum.y), neighbours: [], infected: true});
 				}
@@ -200,4 +200,3 @@ TaxiAnimation.prototype.remove_listeners_on_circles = function()
 			.on('click',null)
 	}
 }
-

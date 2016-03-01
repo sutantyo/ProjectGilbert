@@ -30,7 +30,7 @@ int main()
 	typedef adjacency_list<vecS, vecS, undirectedS> Graph;
 	typedef std::pair<int,int> Edge;
 
-	Edge edge_array[] = 
+	Edge edge_array[] =
 		{ Edge(A,B), Edge(A,C), Edge(C,A), Edge(D,C),
 			Edge(C,E), Edge(B,D), Edge(D,E) };
 	const int num_of_edges = sizeof(edge_array)/sizeof(edge_array[0]);
@@ -38,10 +38,10 @@ int main()
 	//Graph g(num_vertices);
 	//for(int i = 0; i < num_of_edges; ++i)
 	//	add_edge(edge_array[i].first,edge_array[i].second,g);
-	
+
 	Graph g(edge_array, edge_array + num_of_edges, num_vertices);
 
-	
+
 	typedef graph_traits<Graph>::vertex_descriptor Vertex;
 	typedef property_map<Graph,vertex_index_t>::type IndexMap;
 	IndexMap index = get(vertex_index, g);
@@ -57,7 +57,7 @@ int main()
 
 
 	// Accessing the Edge set
-	
+
 	std::cout << "edges(g) = ";
 	graph_traits<Graph>::edge_iterator ei, ei_end;
 	for (boost::tie(ei,ei_end) = edges(g); ei != ei_end; ++ei)

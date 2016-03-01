@@ -1,4 +1,4 @@
-// This class extends Google Maps' OverlayView class 
+// This class extends Google Maps' OverlayView class
 OverlayView.prototype = new google.maps.OverlayView();
 
 // Some functions of the OverlayView class are redefined below
@@ -53,7 +53,7 @@ function OverlayView(){
 			.attr({
 				'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
 				'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
-				})					
+				})
 		var connections = this.main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 		connections
 			.attr('d',function(d){return lineFunction(d.path)})
@@ -82,9 +82,9 @@ function OverlayView(){
 			.attr({
 				'height': distance_in_pixels_between(boundary_points[0],boundary_points[3]),
 				'width': distance_in_pixels_between(boundary_points[0],boundary_points[1])
-				})					
-	
-		if (this.show_edges)	
+				})
+
+		if (this.show_edges)
 		{
 			var connections = this.main_svg.selectAll('path').data(this.edges,function(d){return d.id});
 			connections
@@ -120,7 +120,7 @@ function OverlayView(){
 		taxis.exit()
 			.transition().duration(transition_time*0.25).style('fill-opacity',1e-6)
 			.remove();
-	
+
 		if (this.show_labels)
 		{
 			var labels = this.main_svg.selectAll('text').data(this.nodes,function(d){return d.id});
@@ -156,7 +156,7 @@ function OverlayView(){
 			this.main_svg.selectAll('text').remove();
 		}
 
-			
+
 
 
 	}; // end this.update
@@ -186,7 +186,8 @@ function OverlayView(){
 				'cx': function(d){return position.x - offset.x},
 				'cy': function(d){return position.y - offset.y},
 				'r': 6,
-				'fill': function(d){return d.color}
+				'fill': function(d){return d.color},
+				'stroke': 'white'
 			})
 	}
 	function update_circle_position2(d){
@@ -197,7 +198,8 @@ function OverlayView(){
 				'cx': function(d){return position.x - offset.x},
 				'cy': function(d){return position.y - offset.y},
 				'r': 6,
-				'fill': function(d){return d.color}
+				'fill': function(d){return d.color},
+				'stroke': 'white'
 			})
 	}
 	function set_circle_position(d){
@@ -210,10 +212,9 @@ function OverlayView(){
 				'cy': function(d){return position.y - offset.y},
 				'r':6,
 				'fill': function(d){return d.color},
+				'stroke': 'white'
 			});
 	}
 
 
-}// end class 
-
-
+}// end class

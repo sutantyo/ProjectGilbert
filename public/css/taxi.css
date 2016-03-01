@@ -1,3 +1,7 @@
+* {
+  border-radius: 0 !important;
+}
+
 .no-gutter > [class*='col-'] {
     padding-right:0;
     padding-left:0;

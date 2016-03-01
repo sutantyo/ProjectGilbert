@@ -16,14 +16,14 @@ prepend additional_header
 prepend content
 
 	.page-header
-		h2 San Francisco Taxi
+		h2=heading
 			small &nbsp animation of crawdad data
 
 	.container-fluid
 		.row.no-gutter
 			.col-sm-4
 				div
-					.title-box.map-input.button.btn.btn-default.button-full-width Start Time 
+					.title-box.map-input.button.btn.btn-default.button-full-width Start Time
 				div
 					select.selectpicker.map-input.start-month(data-width='35%')#map-input-start-month
 					select.selectpicker.map-input.start-day(data-width='30%')#map-input-start-day
@@ -42,7 +42,7 @@ prepend content
 
 		.row.no-gutter
 			.col-md-4.col-sm-4.col-xs-12
-				.title-box.map-input.button.btn.btn-default.button-full-width#map-button-custom-area Use custom area 
+				.title-box.map-input.button.btn.btn-default.button-full-width#map-button-custom-area Use custom area
 			.col-md-2.col-sm-2.col-xs-4
 				.title-box.map-input.button.btn.btn-default.button-full-width#map-button-se-coord SW coord
 			.col-md-1.col-sm-1.col-xs-4
@@ -50,7 +50,7 @@ prepend content
 			.col-md-1.col-sm-1.col-xs-4
 				input.map-input.form-control.default-sw-coord-y#map-input-sw-coord-y(type=number,value=100)
 			.col-md-2.col-sm-2.col-xs-4
-				.title-box.map-input.button.btn.btn-default.button-full-width#map-button-nw-coord NE coord 
+				.title-box.map-input.button.btn.btn-default.button-full-width#map-button-nw-coord NE coord
 			.col-md-1.col-sm-1.col-xs-4
 				input.map-input.form-control.default-ne-coord-x#map-input-ne-coord-x(type=number,value=100)
 			.col-md-1.col-sm-1.col-xs-4
@@ -71,7 +71,7 @@ prepend content
 				.button.clicked.btn.btn-default.button-full-width#map-edge-button(disabled='disabled') Edges
 			.col-md-4.col-sm-4.col-xs-12
 				.button.btn.btn-default.button-full-width#map-generate-button Generate
-				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start 
+				.button.btn.btn-default.button-half-width#map-start-button(style='display:none') Start
 				.button.btn.btn-default.button-full-width#map-stop-button(style='display:none')  Stop
 				.button.btn.btn-default.button-half-width#map-reset-button(style='display:none') Reset
 
@@ -79,7 +79,7 @@ prepend content
 
 	#taxi-anim
 
-	// 
+	//
 	//
 	// Chart section
 	//
@@ -87,7 +87,7 @@ prepend content
 
 	.page-header
 		h2 Data charts
-			small &nbsp 
+			small &nbsp
 
 	.container-fluid
 		.row.no-gutter
@@ -105,7 +105,7 @@ prepend content
 					select.chart-input.selectpicker.end-time(data-width='30%')#chart-input-end-time
 		.row.no-gutter
 			.col-md-4.col-sm-4.col-xs-12
-				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-custom-area Use custom area 
+				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-custom-area Use custom area
 			.col-md-2.col-sm-2.col-xs-4
 				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-se-coord SW coord
 			.col-md-1.col-sm-1.col-xs-4
@@ -113,7 +113,7 @@ prepend content
 			.col-md-1.col-sm-1.col-xs-4
 				input.chart-input.form-control.default-sw-coord-y#chart-input-sw-coord-y(type=number,value=100)
 			.col-md-2.col-sm-2.col-xs-4
-				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-nw-coord NE coord 
+				.title-box.chart-input.button.btn.btn-default.button-full-width#chart-button-nw-coord NE coord
 			.col-md-1.col-sm-1.col-xs-4
 				input.chart-input.form-control.default-ne-coord-x#chart-input-ne-coord-x(type=number,value=100)
 			.col-md-1.col-sm-1.col-xs-4
@@ -145,25 +145,25 @@ prepend content
 				input.chart-input.chart-input.form-control#chart-input-max(type=text,value=150)
 			.col-md-offset-8.col-md-4.col-sm-12.col-xs-12
 				.button.btn.btn-default.button-full-width#chart-generate-button Generate
-				.button.btn.btn-default.button-half-width#chart-start-button(style='display:none') Start 
+				.button.btn.btn-default.button-half-width#chart-start-button(style='display:none') Start
 				.button.btn.btn-default.button-full-width#chart-stop-button(style='display:none')  Stop
 				.button.btn.btn-default.button-half-width#chart-reset-button(style='display:none') Reset
 
 	#taxi-data
-		
+
 	#taxi-save-svg.row.no-gutter
 		.col-md-offset-4.col-md-4.col-sm-12.col-xs-12
 			.button.btn.btn-default.button-full-width#chart-generate-button(disabled='disabled') Save as SVG
 
-	// 
-	// 
+	//
+	//
 	// Export Data Section
 	//
 	//
 
 	.page-header
 		h2 Export data
-			small &nbsp 
+			small &nbsp
 
 	.container-fluid
 		.row.no-gutter
@@ -182,7 +182,7 @@ prepend content
 
 		.row.no-gutter
 			.col-md-4.col-sm-4.col-xs-12
-				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-custom-area Use custom area 
+				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-custom-area Use custom area
 			.col-md-2.col-sm-2.col-xs-4
 				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-se-coord SW coord
 			.col-md-1.col-sm-1.col-xs-4
@@ -190,7 +190,7 @@ prepend content
 			.col-md-1.col-sm-1.col-xs-4
 				input.export-input.form-control.default-sw-coord-y#export-input-sw-coord-y(type=number,value=100)
 			.col-md-2.col-sm-2.col-xs-4
-				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-nw-coord NE coord 
+				.title-box.export-input.button.btn.btn-default.button-full-width#export-button-nw-coord NE coord
 			.col-md-1.col-sm-1.col-xs-4
 				input.export-input.form-control.default-ne-coord-x#export-input-ne-coord-x(type=number,value=100)
 			.col-md-1.col-sm-1.col-xs-4
@@ -207,7 +207,7 @@ prepend content
 				input.export-input.form-control#export-input-radius(type=text,value=100)
 			.col-md-4.col-sm-4.col-xs-6
 				.button.btn.btn-default.button-full-width#export-set-button Set Parameters
-				
+
 	hr
 	.container-fluid
 		.row.no-gutter
@@ -232,6 +232,3 @@ prepend content
 	hr
 
 	#taxi-data-results.container-fluid
-
-	
-

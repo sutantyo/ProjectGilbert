@@ -4,9 +4,13 @@ var url = require('url');
 var bodyParser = require('body-parser');
 var pg = require('pg');
 
-var db_password = require('./private/db_password')
+const addon = require ('./build/Release/helloworld');
 
+var db_password = require('./private/db_password')
 var app = express();
+
+
+console.log(addon.demo());
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
@@ -30,19 +34,15 @@ var connection_string = db_password.connection_string;
 
 app.get(['/roma'], function(req,res){
 	res.render('taxi_roma',
-		{ title : 'Project Gilbert' }
+		{ title : 'Project Gilbert',
+			heading : 'Rome Taxi'}
 	);
 });
 
-app.get(['/'], function(req,res){
+app.get(['/sanfrancisco', '/'], function(req,res){
 	res.render('taxi_sf',
-		{ title : 'Project Gilbert' }
-	);
-});
-
-app.get(['/sanfrancisco'], function(req,res){
-	res.render('taxi_sf',
-		{ title : 'Project Gilbert' }
+		{ title : 'Project Gilbert',
+	 		heading: 'San Francisco Taxi'}
 	);
 });
 
@@ -77,7 +77,7 @@ app.get('/maptest', function(req,res){
 });
 
 
-var available_dataset = ['taxi_roma_epoch','taxi_sf_epoch'] 
+var available_dataset = ['taxi_roma_epoch','taxi_sf_epoch']
 app.get('/dataset/:dataset_name/time', function(req,res){
 
 	if (available_dataset.indexOf(req.params.dataset_name) == -1)
