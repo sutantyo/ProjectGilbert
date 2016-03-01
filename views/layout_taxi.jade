@@ -1,6 +1,6 @@
 extend layout
 
-prepend additional_header
+prepend load_last_scripts
 
 	script(src='/js/local/OverlayView.js', charset='utf-8')
 	script(src='/js/local/Graph.js', charset='utf-8')
@@ -64,7 +64,7 @@ prepend content
 			.col-md-1.col-sm-1.col-xs-0.hidden-xs
 				.title-box.map-input.button.btn.btn-default.button-full-width Radius
 			.col-md-1.col-sm-1.col-xs-3
-				input.map-input.form-control#map-input-radius(type=text,value=100)
+				input.map-input.form-control.input-radius#map-input-radius(type=text,value=100)
 			.col-md-2.col-sm-2.col-xs-6
 				.button.btn.btn-default.button-full-width#map-label-button(disabled='disabled') Label
 			.col-md-2.col-sm-2.col-xs-6
@@ -138,16 +138,20 @@ prepend content
 			.col-md-2.col-sm-2.col-xs-6
 				.title-box.chart-input.button.btn.btn-default.button-full-width Radius
 			.col-md-2.col-sm-2.col-xs-6
-				input.chart-input.form-control#chart-input-radius(type=text,value=100)
+				input.chart-input.form-control.input-radius#chart-input-radius(type=text,value=100)
 			.col-md-2.col-sm-2.col-xs-6
-				.title-box.chart-input.button.btn.btn-default.button-full-width Max
+				.title-box.chart-input.button.btn.btn-default.button-full-width.input-max Max
 			.col-md-2.col-sm-2.col-xs-6
-				input.chart-input.chart-input.form-control#chart-input-max(type=text,value=150)
-			.col-md-offset-8.col-md-4.col-sm-12.col-xs-12
-				.button.btn.btn-default.button-full-width#chart-generate-button Generate
-				.button.btn.btn-default.button-half-width#chart-start-button(style='display:none') Start
-				.button.btn.btn-default.button-full-width#chart-stop-button(style='display:none')  Stop
-				.button.btn.btn-default.button-half-width#chart-reset-button(style='display:none') Reset
+				input.chart-input.chart-input.form-control#chart-input-max(type=text,value=120)
+
+		hr
+		.row.no-gutter
+			.col-md-offset-2.col-md-8.col-md-offset-2
+				.title-box.button.btn.btn-default.button-full-width#chart-generate-button Generate
+				.title-box.button.btn.btn-default.button-half-width#chart-start-button(style='display:none') Start
+				.title-box.button.btn.btn-default.button-full-width#chart-stop-button(style='display:none')  Stop
+				.title-box.button.btn.btn-default.button-half-width#chart-reset-button(style='display:none') Reset
+		hr
 
 	#taxi-data
 
@@ -204,7 +208,7 @@ prepend content
 			.col-md-1.col-sm-1.hidden-xs
 				.title-box.export-input.button.btn.btn-default.button-full-width Radius
 			.col-md-1.col-sm-1.col-xs-3
-				input.export-input.form-control#export-input-radius(type=text,value=100)
+				input.export-input.form-control.input-radius#export-input-radius(type=text,value=100)
 			.col-md-4.col-sm-4.col-xs-6
 				.button.btn.btn-default.button-full-width#export-set-button Set Parameters
 

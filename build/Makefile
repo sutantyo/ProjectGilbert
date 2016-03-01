@@ -326,8 +326,8 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
-cmd_regen_makefile = cd $(srcdir); /Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/node-gyp/gyp/gyp_main.py -fmake --ignore-environment "--toplevel-dir=." -I/Users/daniels/Dropbox/coding/node/ProjectGilbert/build/config.gypi -I/Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/node-gyp/addon.gypi -I/Users/daniels/.node-gyp/5.7.0/include/node/common.gypi "--depth=." "-Goutput_dir=." "--generator-output=build" "-Dlibrary=shared_library" "-Dvisibility=default" "-Dnode_root_dir=/Users/daniels/.node-gyp/5.7.0" "-Dnode_gyp_dir=/Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/node-gyp" "-Dnode_lib_file=node.lib" "-Dmodule_root_dir=/Users/daniels/Dropbox/coding/node/ProjectGilbert" binding.gyp
-Makefile: $(srcdir)/../../../../.node-gyp/5.7.0/include/node/common.gypi $(srcdir)/../../../../.nvm/versions/node/v5.7.0/lib/node_modules/node-gyp/addon.gypi $(srcdir)/build/config.gypi $(srcdir)/binding.gyp
+cmd_regen_makefile = cd $(srcdir); /Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/npm/node_modules/node-gyp/gyp/gyp_main.py -fmake --ignore-environment "--toplevel-dir=." -I/Users/daniels/Dropbox/coding/node/ProjectGilbert/build/config.gypi -I/Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/npm/node_modules/node-gyp/addon.gypi -I/Users/daniels/.node-gyp/5.7.0/include/node/common.gypi "--depth=." "-Goutput_dir=." "--generator-output=build" "-Dlibrary=shared_library" "-Dvisibility=default" "-Dnode_root_dir=/Users/daniels/.node-gyp/5.7.0" "-Dnode_gyp_dir=/Users/daniels/.nvm/versions/node/v5.7.0/lib/node_modules/npm/node_modules/node-gyp" "-Dnode_lib_file=node.lib" "-Dmodule_root_dir=/Users/daniels/Dropbox/coding/node/ProjectGilbert" binding.gyp
+Makefile: $(srcdir)/../../../../.node-gyp/5.7.0/include/node/common.gypi $(srcdir)/../../../../.nvm/versions/node/v5.7.0/lib/node_modules/npm/node_modules/node-gyp/addon.gypi $(srcdir)/build/config.gypi $(srcdir)/binding.gyp
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

@@ -12,7 +12,7 @@ $(document).ready(function(){
 				$('#chart-input-start-day').empty();
 				for(var i = dates.min_date; i <= dates.max_date; i++)
 				{
-					$('#chart-input-start-day').append('<option value = "' + i + '">' + i + '</option>'); 
+					$('#chart-input-start-day').append('<option value = "' + i + '">' + i + '</option>');
 				}
 				$('#chart-input-start-day').selectpicker('refresh');
 			}
@@ -26,7 +26,7 @@ $(document).ready(function(){
 				$('#chart-input-end-day').empty();
 				for(var i = dates.min_date; i <= dates.max_date; i++)
 				{
-					$('#chart-input-end-day').append('<option value = "' + i + '">' + i + '</option>'); 
+					$('#chart-input-end-day').append('<option value = "' + i + '">' + i + '</option>');
 				}
 				$('#chart-input-end-day').selectpicker('refresh');
 			}
@@ -53,7 +53,7 @@ $(document).ready(function(){
 			$('#chart-stop-button').show();
 			chart_controller.start();
 		}
-		else 
+		else
 			alert('Error: chart not generated yet');
 	});
 	$('#chart-stop-button').click(function(){
@@ -92,7 +92,7 @@ $(document).ready(function(){
 		$('.chart-input').attr('disabled','disabled');
 		var custom_area_limits = [];
 		if (chart_using_custom_area)
-		{ 
+		{
 			custom_area_limits = { 	x_min: $('#chart-input-sw-coord-x').val(),
 															x_max: $('#chart-input-ne-coord-x').val(),
 															y_min: $('#chart-input-sw-coord-y').val(),
@@ -107,7 +107,7 @@ $(document).ready(function(){
 		}
 
 
-		// Obtain time from the html 
+		// Obtain time from the html
 		//
 		// The process:
 		// Get time from html, convert it to UTC, i.e. subtract the offset from it
@@ -120,16 +120,17 @@ $(document).ready(function(){
 		end_time = new Date(end_time);
 		end_time.setHours(end_time.getHours() - time_offset);
 
-		coverageRadius = $('#chart-input-radius').val();	
+		coverageRadius = $('#chart-input-radius').val();
 		if (end_time <= start_time)
 			alert("Start time is greater than or equal to end time");
 		else
 		{
-			console.log("Generating chart data from " + start_time + ' to ' + end_time);
+			console.log('Generating chart data from ' + start_time + ' (' + start_time.getTime()/1000 + ')'
+																			 + ' to ' + end_time + ' ( ' + end_time.getTime()/1000 + ')');
 			generate_taxi_chart(start_time.getTime()/1000,
-													end_time.getTime()/1000, 
+													end_time.getTime()/1000,
 													time_offset,
-													$('#chart-input-type').val(), 
+													$('#chart-input-type').val(),
 													$('#chart-input-radius').val(),
 													$('#chart-input-interval').val(),
 													$('#chart-input-max').val(),
@@ -225,6 +226,6 @@ function generate_taxi_chart(start_time, end_time, time_offset,
 				}
 			}
 		});
-	});	
+	});
 
 }

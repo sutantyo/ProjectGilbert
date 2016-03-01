@@ -17,24 +17,33 @@ $(document).ready(function(){
 		$('.end-time').append('<option value = "' + period + '">' + period + '</option>');
 	});
 
-	// Set default values
-	//$('.start-time').val('07:00');
-	//$('.start-time').selectpicker('render');
-	//$('.end-time').val('08:00');
-	//$('.end-time').selectpicker('render');
-	//$('.start-day').val('20');
-	//$('.start-day').selectpicker('render');
-	//$('.end-day').val('20');
-	//$('.end-day').selectpicker('render');
+	// set recommended values
+	$('.start-day').val(recommended_start_day);
+	$('.start-day').selectpicker('render');
+	$('.start-month').val(recommended_start_month);
+	$('.start-month').selectpicker('render');
+	$('.start-time').val(recommended_start_hour);
+	$('.start-time').selectpicker('render');
+
+	$('.end-day').val(recommended_end_day);
+	$('.end-day').selectpicker('render');
+	$('.end-month').val(recommended_end_month);
+	$('.end-month').selectpicker('render');
+	$('.end-time').val(recommended_end_hour);
+	$('.end-time').selectpicker('render');
+
 	$('.default-sw-coord-x').val(map_boundaries[3].x);
 	$('.default-sw-coord-y').val(map_boundaries[3].y);
 	$('.default-ne-coord-x').val(map_boundaries[1].x);
 	$('.default-ne-coord-y').val(map_boundaries[1].y)
 
-	recommended_intervals.forEach(function(interval){
+	available_intervals.forEach(function(interval){
 		$('.input-interval').append('<option value = "' + interval + '">' + interval + '</option>');
 	});
 
+	$('.input-interval').val(recommended_interval);
+	$('.input-interval').selectpicker('render');
 
+	$('.input-radius').val(recommended_radius);
 
 });// end jquery

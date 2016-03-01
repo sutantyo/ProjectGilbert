@@ -6,30 +6,29 @@ append content
 	script.
 
 		// parameters specific to Taxi Roma dataset:
-		// ... the earliest timestamp is 1391212800, 
-		// ... the latest timestamp is 1393804798,
+		// ... the earliest timestamp is 1391212800,
+		// ... the final timestamp is 1393804798,
 
 		var min_time = 1391212800;
 		var max_time = 1393804798;
 		var time_offset = +2;
+
 		// boundary points for our svg
 		var map_boundaries = [  {id : 'NW', x: 42.23961, y: 12.04925},
 														{id : 'NE', x: 42.23961, y: 12.85368},
 														{id : 'SE', x: 41.65899, y: 12.85368},
 														{id : 'SW', x: 41.65899, y: 12.04925} ];
 
-
-		// boundary points for our svg
+		// available dates and times
 		var available_year = 2014;
 		var available_dates = [  {month: 'February',  min_date: '1', max_date: '28'},
 														 {month: 'March', min_date: '1',  max_date: '2'} ];
 		var available_times = [	'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00',
 													  '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
 														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
-		var recommended_intervals = [ 15, 30, 45, 60 ];
+		var available_intervals = [ 15, 30, 45, 60 ];
 
-
-		// create a map 
+		// create a map
 		var map = new google.maps.Map(d3.select("#taxi-anim").node(), {
 			zoom: 14,
 			center: new google.maps.LatLng(41.90759354,12.48991750),
@@ -51,13 +50,6 @@ append content
 		var data_url = '/dataset/taxi_roma_epoch/';
 		var data_chunk_size = 3600;
 
-
-
-
-
-
-
-		//
-		// Create a map centered in San Fransisco
-
-
+		var recommended_start_day = '';
+		var recommended_start_month = '';
+		var recommended_start_hour = '';

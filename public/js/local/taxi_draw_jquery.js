@@ -10,7 +10,7 @@ $(document).ready(function(){
 				$('#map-input-start-day').empty();
 				for(var i = dates.min_date; i <= dates.max_date; i++)
 				{
-					$('#map-input-start-day').append('<option value = "' + i + '">' + i + '</option>'); 
+					$('#map-input-start-day').append('<option value = "' + i + '">' + i + '</option>');
 				}
 				$('#map-input-start-day').selectpicker('refresh');
 			}
@@ -24,7 +24,7 @@ $(document).ready(function(){
 				$('#map-input-end-day').empty();
 				for(var i = dates.min_date; i <= dates.max_date; i++)
 				{
-					$('#map-input-end-day').append('<option value = "' + i + '">' + i + '</option>'); 
+					$('#map-input-end-day').append('<option value = "' + i + '">' + i + '</option>');
 				}
 				$('#map-input-end-day').selectpicker('refresh');
 			}
@@ -92,7 +92,7 @@ $(document).ready(function(){
 			animation_controller.stop_animation = false;
 			animation_controller.animation_loop();
 		}
-		else 
+		else
 		{
 			alert('Error: animation not ready');
 		}
@@ -143,11 +143,11 @@ $(document).ready(function(){
 		// (except for the buttons for 'labels' and 'edges' which will be enabled later)
 		$('.map-input').attr('disabled','disabled');
 
-		// Define the map area in which the drawing will take place 
+		// Define the map area in which the drawing will take place
 		// ... if custom area is not used, it will use the default map boundaries stored in the html
 		var custom_area_limits = [];
 		if (map_using_custom_area)
-		{ 
+		{
 			custom_area_limits = { 	x_min: $('#map-input-sw-coord-x').val(),
 															x_max: $('#map-input-ne-coord-x').val(),
 															y_min: $('#map-input-sw-coord-y').val(),
@@ -162,7 +162,7 @@ $(document).ready(function(){
 		}
 
 
-		// Construct UNIX epoch time for start and end times 
+		// Construct UNIX epoch time for start and end times
 		var start_time = ($('#map-input-start-day').val() + ' ' + $('#map-input-start-month').val() + ' ' + available_year
 											+ ' ' + $('#map-input-start-time').val() + ' UTC');
 		start_time = new Date(start_time);
@@ -211,12 +211,12 @@ $(document).ready(function(){
 						animation_controller.add_listeners_on_circles();
 						$('#map-edge-button').removeAttr('disabled','disabled');
 						$('#map-label-button').removeAttr('disabled','disabled');
-				});	
+				});
 		}
 
 	});
 
-		
+
 });// end jquery
 
 
@@ -226,14 +226,14 @@ function generate_taxi_animation(	start_time,end_time,
 																	radius,interval,
 																	boundaries, custom_area_limits)
 {
-	// Set some parameters for the overlay animation (e.g. transition time), 
+	// Set some parameters for the overlay animation (e.g. transition time),
 	// these methods are in our inherited class
 	var overlay = new OverlayView();
 	overlay.setTransitionTime(1000);
 	overlay.setBoundaries(boundaries);
 	overlay.setMap(map);
 
-	animation_parameters = { animation_start_time : start_time, 
+	animation_parameters = { animation_start_time : start_time,
 													 animation_end_time		: end_time,
 													 animation_step				: parseInt(interval),
 													 data_url							: data_url,
@@ -242,8 +242,9 @@ function generate_taxi_animation(	start_time,end_time,
 													 x_min								: parseFloat(custom_area_limits.x_min),
 													 x_max								: parseFloat(custom_area_limits.x_max),
 													 y_min								: parseFloat(custom_area_limits.y_min),
-													 y_max								: parseFloat(custom_area_limits.y_max)
-												};	
+													 y_max								: parseFloat(custom_area_limits.y_max),
+													 time_offset					: time_offset
+												};
 	var anim = new TaxiAnimation(overlay, animation_parameters);
 	//anim.animation_loop();
 
@@ -273,4 +274,3 @@ function generate_taxi_animation(	start_time,end_time,
 		});
 	});
 }
-

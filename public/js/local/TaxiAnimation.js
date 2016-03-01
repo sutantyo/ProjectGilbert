@@ -6,6 +6,7 @@ function TaxiAnimation(overlay, params){
 	this.chunk_start_time = this.current_time =  params.animation_start_time;
 	this.chunk_size = params.data_chunk
 	this.chunk_end_time = this.chunk_start_time + this.chunk_size;
+	this.time_offset = params.time_offset;
 
 	this.data_url = params.data_url;
 
@@ -63,6 +64,7 @@ TaxiAnimation.prototype.animation_loop = function()
 	//setTimeout(function(){
 		_this.build_graph().then(function(returned_graph){
 			var ct = new Date(_this.current_time*1000);
+			ct.setHours(ct.getHours()+this.time_offset);
 			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-4));
 			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
 			animation_promise
@@ -118,29 +120,35 @@ TaxiAnimation.prototype.build_graph = function()
 				node.color = '#8de854';
 				_this.infected[node.id] = true;
 			});
-		else if (component.length > 15)
+		else if (component.length > 20)
 			component.forEach(function(node){
-				node.color = '#ff0000';
+				//node.color = '#9e38ff';
+				node.color = '#a50f15';
+				//node.color = '#ff0000';
 			});
-		else if (component.length > 13)
+		else if (component.length > 10)
 			component.forEach(function(node){
-				node.color = '#a81662';
+				node.color = '#de2d26';
+				//node.color = '#a81662';
 			});
-		else if (component.length > 9)
+		else if (component.length > 5)
 			component.forEach(function(node){
-				node.color = '#c94b8c';
+				node.color = '#fb6a4a';
 			});
+		/*
 		else if (component.length > 5)
 			component.forEach(function(node){
 				node.color = '#d870e6';
 			});
+		*/
 		else if (component.length > 1)
 			component.forEach(function(node){
-				node.color = '#a370e6';
+				//node.color = '#a370e6';
+				node.color = '#fcae91'
 			});
 		else
 			component.forEach(function(node){
-				node.color = 'gray';
+				node.color = '#fcae91';
 			});
 	});
 

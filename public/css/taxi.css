@@ -2,6 +2,12 @@
   border-radius: 0 !important;
 }
 
+.axis {
+  fill: none;
+  stroke: black;
+  font-size: x-small;
+}
+
 .no-gutter > [class*='col-'] {
     padding-right:0;
     padding-left:0;

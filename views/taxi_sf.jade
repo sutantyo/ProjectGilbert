@@ -6,7 +6,7 @@ append content
 		// parameters to control the animation
 
 		// parameters specific to Taxi SF dataset:
-		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04 
+		// ... the earliest timestamp is 1211018404, 17-May-2008 10:00:04
 		// ... the latest timestamp is 1213089934, 6-June-2008 09:25:34
 		// ... the offset is -7 (due to daylight saving)
 
@@ -27,7 +27,7 @@ append content
 		var available_times = [	'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00',
 													  '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00',
 														'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00' ];
-		var recommended_intervals = [ 45, 60 ];
+		var available_intervals = [ 45, 60 ];
 
 		var map_boundaries = [  {id : 'NW', x: 37.99, y: -122.56},
 														{id : 'NE', x: 37.99, y: -122.00},
@@ -56,6 +56,12 @@ append content
 		var data_url = '/dataset/taxi_sf_epoch/';
 		var data_chunk_size = 3600;
 
+		var recommended_start_day = 25;
+		var recommended_start_month = 'May';
+		var recommended_start_hour = '04:00';
+		var recommended_end_day = 26;
+		var recommended_end_month = 'May';
+		var recommended_end_hour = '04:00';
 
-
-
+		var recommended_interval = 60;
+		var recommended_radius = 300;

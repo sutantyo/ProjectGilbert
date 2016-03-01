@@ -52,25 +52,43 @@ function TaxiData(params)
 
 		var _this = this;
 		var scale_start_time = new Date(params.start_time*1000);
-		console.log('DEBUG ' + scale_start_time.getHours());
-		scale_start_time.setHours(scale_start_time.getHours()-scale_start_time.getTimezoneOffset()-_this.time_offset);
+		scale_start_time.setHours(scale_start_time.getHours()+_this.time_offset);
 		var scale_end_time = new Date(params.end_time*1000);
-		scale_end_time.setHours(scale_end_time.getHours()-scale_end_time.getTimezoneOffset()-_this.time_offset);
-		console.log(scale_start_time);
+		scale_end_time.setHours(scale_end_time.getHours()+_this.time_offset);
+		console.log(scale_start_time.toUTCString());
 		console.log(scale_end_time);
+		console.log(scale_start_time);
 		var x = d3.time.scale()
 		 .domain([scale_start_time,scale_end_time])
 		 .range([0,params.svg_width]);
-		var xAxis = d3.svg.axis().scale(x).ticks(d3.time.minutes, 60);
+		var xAxis = d3.svg.axis()
+									.scale(x).ticks(d3.time.hours, 2)
+									.innerTickSize([10])
+									.tickFormat(function(d){
+										if (d.getTime() == scale_start_time.getTime() || d.getTime() == scale_end_time.getTime())
+											return "";
+										else
+											return d.getHours() + ':00';});
 
 		_this.svg.append('g')
-			.call(xAxis);
+			.attr('class','axis')
+			.call(xAxis)
+			.attr('transform','translate(0,0)');
 
 		var y = d3.scale.linear().domain([0,_this.max_value]).range([_this.svg_height,0]);
-		var yAxis = d3.svg.axis().scale(y).ticks(5).orient('left');
+		var yAxis = d3.svg.axis().scale(y).ticks(5).orient('right')
+									.innerTickSize([10])
+									.tickFormat(function(d){
+										if (d === 0 || d === _this.max_value)
+											return "";
+										else
+										 return d;
+									});
 
 		_this.svg_axis.append('g')
-			.call(yAxis);
+			.attr('class','axis')
+			.call(yAxis)
+			.attr('transform','translate(20,0)');
 	}
 
 	this.paused = false;
