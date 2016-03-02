@@ -52,12 +52,11 @@ function TaxiData(params)
 
 		var _this = this;
 		var scale_start_time = new Date(params.start_time*1000);
-		scale_start_time.setHours(scale_start_time.getHours()+_this.time_offset);
+		console.log("Initial start time: " + scale_start_time);
+		scale_start_time.setHours(scale_start_time.getHours()+_this.time_offset+scale_start_time.getTimezoneOffset()/60);
+		console.log("Modified start time: " + scale_start_time);
 		var scale_end_time = new Date(params.end_time*1000);
-		scale_end_time.setHours(scale_end_time.getHours()+_this.time_offset);
-		console.log(scale_start_time.toUTCString());
-		console.log(scale_end_time);
-		console.log(scale_start_time);
+		scale_end_time.setHours(scale_end_time.getHours()+_this.time_offset+scale_end_time.getTimezoneOffset()/60);
 		var x = d3.time.scale()
 		 .domain([scale_start_time,scale_end_time])
 		 .range([0,params.svg_width]);

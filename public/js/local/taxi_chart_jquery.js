@@ -68,8 +68,6 @@ $(document).ready(function(){
 			}
 			else
 			{
-				d3.select('#taxi-data').select('#svg-main').remove();
-				d3.select('#taxi-data').select('#svg-axis').remove();
 				$('#chart-generate-button').show();
 				$('#chart-stop-button').hide();
 				$('.chart-input').removeAttr('disabled','disabled');
@@ -89,6 +87,8 @@ $(document).ready(function(){
 	});
 	$('#chart-generate-button').click(function(){
 
+			d3.select('#taxi-data').select('#svg-main').remove();
+			d3.select('#taxi-data').select('#svg-axis').remove();
 		$('.chart-input').attr('disabled','disabled');
 		var custom_area_limits = [];
 		if (chart_using_custom_area)
@@ -173,7 +173,11 @@ function generate_taxi_chart(start_time, end_time, time_offset,
 		svg_to_save = new XMLSerializer().serializeToString(svg_to_save);
 		var blob = new Blob([svg_to_save],{type:'image/svg+xml;charset=utf-8'});
 
-		saveAs(blob,'test.svg');
+
+		var start_d = new Date(start_time*1000);
+		var end_d = new Date(end_time*1000);
+		var title = '' + start_d.toUTCString() + ':00 to ' + end_d.toUTCString() + ':00, r: ' + radius + ', i: ' + interval;
+		saveAs(blob, title + '.svg');
 		});
 		//var svg_to_save = new XMLSerializer().serializeToString($('#svg-main'));
 
