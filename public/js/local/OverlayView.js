@@ -58,6 +58,7 @@ function OverlayView(){
 		connections
 			.attr('d',function(d){return lineFunction(d.path)})
 			.style('stroke',function(d){return d.origin.color})
+			.style('stroke-width','1pt');
 		var taxis = this.main_svg.selectAll('circle').data(this.nodes,function(d){return d.id});
 		taxis.each(update_circle_position2);
 
@@ -92,6 +93,7 @@ function OverlayView(){
 				.duration(transition_time*0.8)
 				.attr('d',function(d){return lineFunction(d.path)})
 				.style('stroke',function(d){return d.origin.color})
+				.style('stroke-width','1pt')
 			connections.enter().append('path')
 				.attr('d',function(d){return lineFunction(d.path)})
 				.style('stroke','blue')
@@ -101,7 +103,7 @@ function OverlayView(){
 				.transition()
 					.delay(transition_time*0.8)
 					.duration(transition_time*0.2)
-					.style('stroke-width','2pt')
+					.style('stroke-width','1pt')
 			connections.exit()
 				.transition().duration(transition_time*0.25).style('stroke-width','0pt')
 				.remove();
@@ -180,7 +182,7 @@ function OverlayView(){
 	function update_circle_position(d){
 		var position = find_pixel_position_of(d);
 		return d3.select(this)
-			.transition().duration(transition_time*0.8)
+			.transition().duration(transition_time*1.00)
 			.style('fill-opacity',1)
 			.attr({
 				'cx': function(d){return position.x - offset.x},

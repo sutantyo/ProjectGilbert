@@ -25,6 +25,8 @@ function TaxiAnimation(overlay, params){
 	this.x_max = params.x_max;
 	this.y_min = params.y_min;
 	this.y_max = params.y_max;
+
+	this.drawtime = params.drawtime;
 }
 
 
@@ -66,7 +68,7 @@ TaxiAnimation.prototype.animation_loop = function()
 			var ct = new Date(_this.current_time*1000);
 			ct.setHours(ct.getHours()+this.time_offset);
 			d3.select('#map-info-time').text(ct.toUTCString().slice(0,-4));
-			var animation_promise = TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+			var animation_promise = _this.draw_graph(returned_graph,_this.overlay);
 			animation_promise
 				.then(function(msg){
 					if (_this.stop_animation || _this.current_time >= _this.end_time)
@@ -159,8 +161,9 @@ TaxiAnimation.prototype.build_graph = function()
 	});
 }
 
-TaxiAnimation.draw_graph = function(graph,overlay)
+TaxiAnimation.prototype.draw_graph = function(graph,overlay)
 {
+	var _this = this;
 	//console.log('calling draw graph');
 	var a = performance.now();
 	overlay.nodes = graph.nodes;
@@ -169,7 +172,7 @@ TaxiAnimation.draw_graph = function(graph,overlay)
 	return new Promise( function(resolve,reject){
 		setTimeout(function(){
 			//console.log('draw time: ' + (performance.now()-a));
-			resolve('...finished drawing')},1000);
+			resolve('...finished drawing')},_this.drawtime);
 	});
 }
 
@@ -185,14 +188,14 @@ TaxiAnimation.prototype.add_listeners_on_circles = function()
 				{
 					_this.infected[d.id] = false;
 					_this.build_graph().then(function(returned_graph){
-						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+						_this.draw_graph(returned_graph,_this.overlay);
 					});
 				}
 				else
 				{
 					_this.infected[d.id] = true;
 					_this.build_graph().then(function(returned_graph){
-						TaxiAnimation.draw_graph(returned_graph,_this.overlay);
+						_this.draw_graph(returned_graph,_this.overlay);
 					});
 				}
 			});

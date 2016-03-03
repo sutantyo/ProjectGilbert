@@ -196,7 +196,8 @@ $(document).ready(function(){
 															$('#map-input-radius').val(),
 															$('#map-input-interval').val(),
 															map_boundaries,
-															custom_area_limits
+															custom_area_limits,
+															drawtime
 															)
 				.then(function(returned_value){
 						animation_controller = returned_value;
@@ -224,12 +225,12 @@ $(document).ready(function(){
 
 function generate_taxi_animation(	start_time,end_time,
 																	radius,interval,
-																	boundaries, custom_area_limits)
+																	boundaries, custom_area_limits, drawtime)
 {
 	// Set some parameters for the overlay animation (e.g. transition time),
 	// these methods are in our inherited class
 	var overlay = new OverlayView();
-	overlay.setTransitionTime(1000);
+	overlay.setTransitionTime(drawtime);
 	overlay.setBoundaries(boundaries);
 	overlay.setMap(map);
 
@@ -243,7 +244,8 @@ function generate_taxi_animation(	start_time,end_time,
 													 x_max								: parseFloat(custom_area_limits.x_max),
 													 y_min								: parseFloat(custom_area_limits.y_min),
 													 y_max								: parseFloat(custom_area_limits.y_max),
-													 time_offset					: time_offset
+													 time_offset					: time_offset,
+													 drawtime							: drawtime
 												};
 	var anim = new TaxiAnimation(overlay, animation_parameters);
 	//anim.animation_loop();
